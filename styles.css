@@ -12,3 +12,80 @@
 @media(max-width:650px){.topbar{height:77px;padding:0 20px;gap:10px}.brand{font-size:23px;gap:9px}.brand-mark{height:33px;width:33px;border-radius:9px}.brand-mark svg{width:25px;height:25px}.brand small{font-size:6px;letter-spacing:1.2px}.topbar nav{display:none}.connection{padding:6px 8px;font-size:10px}.connection .icon{width:14px}.page{padding:0 20px}.hero{min-height:325px;position:relative;padding:32px 0}.hero-copy{position:relative;z-index:1}.hero h1{font-size:45px;letter-spacing:-2.2px;margin-top:16px}.hero-copy>.eyebrow{font-size:7px;letter-spacing:1px}.hero-copy>p{font-size:12px;max-width:260px}.desktop-break{display:none}.hero-art{position:absolute;right:-70px;top:24px;opacity:.3;transform:scale(.7);transform-origin:right center;pointer-events:none}.hero-meta{font-size:9px;margin-top:18px}.library-layout{display:flex;flex-direction:column;gap:25px}.music-library{width:100%}.setup-panel{width:100%;padding:20px}.section-heading{align-items:center;gap:5px;margin-bottom:19px}.section-heading h2{font-size:25px}.section-heading .button{font-size:10px;padding:10px;min-height:40px}.filter-bar{gap:21px}.filter{font-size:11px}.song-card{padding:13px;gap:14px;min-height:105px}.song-art{width:70px;height:73px}.song-art strong{font-size:16px}.song-info h3{font-size:17px}.song-info p{font-size:11px}.song-meta{font-size:9px}.song-state{display:grid;width:27px;height:27px}.automatic-note{padding-bottom:0}.automatic-note strong{font-size:10px}.automatic-note p{font-size:9px}.selected-cover{height:180px}.cover-title{font-size:34px}.setup-panel h3{font-size:23px}.segmented button{font-size:11px;min-height:40px}.field-label,.setting-row{font-size:12px}.field-hint{font-size:11px}.setting-row select{font-size:11px;padding:8px}.analysis-status{font-size:11px}.panel-label{font-size:10px}.panel-actions .text-button{font-size:11px;min-height:38px}.fine-tuning{font-size:12px}.fine-tuning p{font-size:10px}.track-stats small{font-size:9px}.track-stats b{font-size:21px}.how-to{margin-top:28px;padding-top:26px;gap:23px 20px}.how-to h2{font-size:25px}.how-intro .eyebrow{font-size:8px}.how-step h3{font-size:13px}.how-step p{font-size:11px}.how-step:last-child{grid-column:span 2}footer{font-size:7px;letter-spacing:.7px;flex-direction:column;gap:10px}.game-screen{padding:16px 14px}.game-top{gap:8px}.game-top>.button{padding:8px;min-height:38px;font-size:10px}.game-top .icon{width:13px!important;height:13px!important}.game-top h2{font-size:15px;max-width:180px}.game-top .eyebrow{font-size:6px;letter-spacing:1.2px}.play-layout{display:flex;flex-direction:column;gap:14px;margin-top:12px}.score-panel{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:0;gap:4px 12px}.score-panel>.eyebrow{grid-row:1;grid-column:1;font-size:7px;letter-spacing:1px}.score-panel>strong{grid-row:2;grid-column:1;font-size:23px;margin:0}.combo-number{grid-column:2;grid-row:1 / 3;padding:0;margin:0;border:0;display:flex;align-items:center;gap:5px;flex-direction:row;justify-content:center}.combo-number>span{font-size:33px;letter-spacing:-1px}.combo-number small{font-size:7px;letter-spacing:1px}.score-detail{margin:0;font-size:9px;grid-column:3}.score-panel .timing-guide,.score-panel .game-help{display:none}.stage-wrap{width:100%}.game-board{height:clamp(340px,calc(100dvh - 265px),720px);--note-size:58px}.game-progress{margin-top:10px}.playing .topbar{height:64px}.game-time{margin-top:5px}.result-stats b{font-size:22px}.result-stats span{font-size:7px}.results-dialog{padding:25px 20px}.results-dialog h2{font-size:21px}}
 @media(max-width:650px){.song-art strong{font-size:13px}.filter{min-height:44px}.panel-actions .text-button{min-height:44px}.fine-tuning summary{min-height:40px}.art-label{display:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.judgment.show{opacity:1}.hit-particle{display:none}.note:after{display:none}}
+
+/* Contours traced from the supplied dance video; SVG preserves transparency. */
+.hero-art.dancers-art{height:300px;background:radial-gradient(ellipse at 50% 60%,#27684a30,transparent 67%);isolation:isolate}
+.dancers-animation{height:285px;width:auto;position:relative;z-index:1;filter:drop-shadow(0 0 5px #bcf36b35);object-fit:contain;align-self:start}
+.dance-floor{position:absolute;bottom:14px;width:260px;height:55px;border:1px solid #78bd7550;border-radius:50%;background:radial-gradient(ellipse,#bcf36b15,transparent 70%);transform:rotate(-7deg)}
+.dancers-caption{position:absolute;bottom:0;font-size:8px;letter-spacing:2px;color:#9eb6a5;z-index:2}
+.dancers-caption i{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--lime);margin-right:8px}
+.dancers-stage{height:210px;display:flex;justify-content:center;margin:18px 0 -20px;overflow:hidden;mask-image:linear-gradient(#000 93%,transparent)}
+.dancers-stage img{height:210px;width:auto;object-fit:contain;filter:drop-shadow(0 0 3px #bcf36b25)}
+.rhythm-panel:has(.dancers-stage) .device-card{margin-top:26px}
+@media(max-width:850px){.hero-art.dancers-art{width:270px}}
+@media(max-width:650px){.hero-art.dancers-art{right:-65px;top:54px;width:195px;height:250px;opacity:.38;transform:none}.dancers-animation{height:235px}.dance-floor{width:180px}.dancers-caption{display:none}}
+
+/* Hidden source clip, revealed only by hovering the traced dancers. */
+.dance-easter-egg{position:relative;display:inline-grid;height:285px;aspect-ratio:238/328;z-index:1;align-self:start;pointer-events:auto}
+.dance-easter-egg>img{grid-area:1/1;width:100%;height:100%;object-fit:contain;transition:opacity .18s}
+.dancers-original{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .18s}
+.show-original>img{opacity:0}.show-original>.dancers-original{opacity:1}
+.dancers-stage .dance-easter-egg{height:210px}
+
+/* The track fills the presentation screen; smaller notes leave clear gaps. */
+.playing .topbar{display:none}
+.game-screen{max-width:none;padding:12px 24px 8px}
+.game-top{max-width:1200px;margin:auto;min-height:48px}
+.game-top h2{font-size:20px}
+.play-layout{grid-template-columns:160px minmax(0,780px) 160px;gap:24px;margin-top:12px}
+.game-board{height:calc(100dvh - 126px);min-height:300px;--note-size:48px;--pad-size:64px;--target-bottom:46px}
+.receptors{height:var(--pad-size)}
+.pad{width:var(--pad-size);height:var(--pad-size)}
+.note{border-radius:9px;padding:7px;box-shadow:0 2px 0 color-mix(in srgb,var(--lane-color) 25%,#101b26)}
+.note:after{display:none}
+.hit-line{bottom:calc(var(--target-bottom) + var(--pad-size)/2);height:2px}
+.beat-grid{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.beat-line{position:absolute;top:0;left:0;width:100%;height:1px;background:#a9c7d02b;will-change:transform}
+.measure-line{height:2px;background:#a9c7d04d}
+.board-top-label{font-size:10px;letter-spacing:3px}
+.score-panel,.rhythm-panel{padding-top:22px}
+.score-panel>strong{font-size:34px}
+.score-panel>.eyebrow,.rhythm-panel>.eyebrow{font-size:11px}
+.score-detail{font-size:13px}.combo-number small{font-size:11px}
+.game-progress{margin-top:8px}.game-time{margin-top:4px;font-size:11px}
+@media(min-width:1600px){.play-layout{grid-template-columns:190px minmax(0,880px) 190px;gap:32px}.game-board{--note-size:52px;--pad-size:72px}}
+@media(max-width:1100px){.play-layout{grid-template-columns:130px minmax(0,1fr);gap:18px}.rhythm-panel{display:none}.score-panel>strong{font-size:27px}}
+@media(max-width:650px){.game-screen{padding:8px 10px}.play-layout{display:flex;gap:10px;margin-top:8px}.game-top{min-height:40px}.game-top h2{font-size:14px}.game-board{height:calc(100dvh - 158px);min-height:280px;--note-size:38px;--pad-size:52px;--target-bottom:36px}.score-panel{padding-top:0}.score-panel>strong{font-size:23px}.score-panel>.eyebrow{font-size:7px}.score-detail{font-size:9px}.combo-number small{font-size:7px}.hero-art.dancers-art .dance-easter-egg{height:235px}}
+@media(prefers-reduced-motion:reduce){.dance-easter-egg>img,.dancers-original{transition:none}}
+
+/* Presentation layout: a slim left rail and the entire remaining width for play. */
+body.playing{overflow:hidden}
+.game-screen{width:100%;height:100dvh;max-width:none;padding:4px 6px;display:flex;flex-direction:column;gap:4px}
+.game-top{width:100%;max-width:none;min-height:38px;height:38px;flex:none;margin:0;gap:8px}
+.game-top>.button{min-height:34px;padding:6px 10px;font-size:11px}
+.game-top h2{font-size:16px;line-height:1.1;margin-top:0;max-width:65vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-top .eyebrow{font-size:7px;letter-spacing:1.2px}
+.play-layout{width:100%;display:grid;grid-template-columns:clamp(72px,8vw,128px) minmax(0,1fr);gap:6px;margin:0;flex:1;min-height:0}
+.score-panel{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:12px 4px 0;min-width:0;overflow:hidden}
+.score-panel>.eyebrow{font-size:8px;letter-spacing:.5px}
+.score-panel>strong{font-size:clamp(17px,2vw,29px);line-height:1.1;letter-spacing:-.8px;margin:0}
+.combo-number{display:flex;flex-direction:column;align-items:start;justify-content:start;gap:3px;padding:10px 0;margin:0;border-bottom:1px solid var(--line)}
+.combo-number>span{font-size:clamp(27px,3vw,42px);letter-spacing:-1px}
+.combo-number small{font-size:8px;letter-spacing:1px;margin:0}
+.score-detail{display:flex;flex-direction:column;gap:2px;align-items:start;font-size:10px;margin:0}
+.score-detail b{font:500 17px var(--heading)}
+.score-panel .dancers-stage{height:auto;min-height:0;margin:auto -4px 5px;overflow:hidden;mask-image:none}
+.score-panel .dance-easter-egg{width:100%;height:auto;max-height:30dvh;aspect-ratio:238/328}
+.score-panel .dancers-stage img{height:100%;width:100%}
+.stage-wrap{position:relative;min-width:0;min-height:0;width:100%;height:100%}
+.game-board{height:100%;min-height:0;width:100%;--pad-size:clamp(70px,12dvh,124px);--note-size:clamp(50px,8.5dvh,88px);--target-bottom:36px;border-radius:8px}
+.game-progress{position:absolute;bottom:3px;left:8px;right:8px;height:3px;margin:0;pointer-events:none}
+.game-time{position:absolute;bottom:8px;left:8px;right:8px;font-size:9px;margin:0;pointer-events:none}
+.pad{padding:12px;border-width:2px}.note{padding:8px;border-radius:10px}
+.pad:after{bottom:-19px;font-size:12px}
+.board-top-label{display:none}
+.judgment{bottom:calc(var(--pad-size) + 65px);font-size:clamp(23px,3vw,38px)}
+.result-summary{color:#d7e8d2;line-height:1.7;margin:18px 0 10px!important}
+#result-hits{line-height:1.8;color:var(--muted)}
+.results-dialog{max-height:calc(100dvh - 24px);overflow:auto}
+@media(max-width:650px){.game-screen{padding:3px;gap:3px}.game-top{height:36px;min-height:36px}.game-top>.button{font-size:9px;padding:5px 7px;min-height:32px}.game-top h2{font-size:12px;max-width:50vw}.game-top .eyebrow{font-size:6px}.play-layout{grid-template-columns:64px minmax(0,1fr);gap:4px}.score-panel{padding:10px 2px 0;gap:8px}.score-panel>.eyebrow{font-size:7px}.score-panel>strong{font-size:16px}.combo-number>span{font-size:27px}.score-detail{font-size:9px}.score-detail b{font-size:15px}.game-board{--pad-size:clamp(42px,11vw,68px);--note-size:clamp(32px,8vw,49px);--target-bottom:32px}.pad{padding:6px}.note{padding:5px}.score-panel .dance-easter-egg{max-height:22dvh}.combo-number small{font-size:7px}}

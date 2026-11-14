@@ -162,6 +162,9 @@ function showResults(result) {
   $('result-song').textContent = `${selected.title} · ${LEVELS[difficulty].label}`;
   $('result-score').textContent = result.points.toLocaleString('pt-BR');
   $('result-accuracy').textContent = `${result.accuracy.toFixed(1)}%`; $('result-combo').textContent = `${result.bestCombo}×`;
+    const hits = result.perfect + result.good + result.ok;
+    const advice = result.accuracy >= 95 ? 'Ritmo impecável! Que tal subir o nível?' : result.accuracy >= 85 ? 'Ótima partida! Continue emendando acertos.' : result.accuracy >= 70 ? 'Bom ritmo! Tente acertar mais perto do centro do alvo.' : result.accuracy >= 50 ? 'Você está pegando o ritmo. Mais uma tentativa?' : 'Continue praticando em Primeiros passos, uma seta de cada vez.';
+    $('result-summary').textContent = `Você acertou ${hits} de ${result.total} passos. ${advice}`;
   $('result-hits').textContent = `${result.perfect} perfeitos · ${result.good} muito bons · ${result.ok} quase · ${result.miss} perdidos · ${result.wrong} fora do tempo`;
   $('results-dialog').showModal();
 }
@@ -254,4 +257,25 @@ $('nav-how').addEventListener('click', () => { if (game) showLibrary(); $('how-t
 $('nav-library').addEventListener('click', () => { if (game) showLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 window.addEventListener('resize', () => drawWaveform());
 renderTracks(); drawWaveform();
+// A quiet visual Easter egg: the source recording only plays while hovered.
+document.querySelectorAll('.dance-easter-egg').forEach(container => {
+  const video = container.querySelector('video');
+  container.addEventListener('pointerenter', async event => {
+    if (event.pointerType === 'touch') return;
+    try {
+      video.currentTime = 0;
+      await video.play();
+      if (container.matches(':hover')) container.classList.add('show-original');
+      else video.pause();
+    } catch { container.classList.remove('show-original'); }
+  });
+  container.addEventListener('pointerleave', () => {
+    container.classList.remove('show-original'); video.pause();
+  });
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) document.querySelectorAll('.dance-easter-egg').forEach(container => {
+    container.classList.remove('show-original'); container.querySelector('video').pause();
+  });
+});
 if (location.protocol === 'file:') toast('Abra com npm start ou Live Server para carregar o áudio e gerar as fases.');

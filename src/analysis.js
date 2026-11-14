@@ -180,5 +180,5 @@ export function generateChart(analysis, { difficulty = 'easy', duration = 60, bp
     notes.push({ time: Math.round(time * 1000) / 1000, dir: direction, band: ['low', 'mid', 'high'][dominant] });
   }
   if (!notes.length) throw new Error('Não foi possível gerar passos neste trecho. Tente música completa ou outra faixa.');
-  return { version: 1, difficulty, bpm, duration: limit, travel: level.travel, notes };
+  return { version: 1, difficulty, bpm, phase, duration: limit, travel: level.travel, notes };
 }

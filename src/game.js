@@ -1,6 +1,5 @@
 import { AudioTransport } from './audio.js';
 import { DIRECTIONS } from './input.js';
-import { LEVELS } from './analysis.js';
 import { createScore, judgeTiming, recordJudgment, accuracy, HIT_WINDOWS } from './scoring.js';
 
 const $ = id => document.getElementById(id);
@@ -15,6 +14,10 @@ export class Game {
     this.score = createScore(); this.state = 'ready'; this.spawnIndex = 0; this.active = new Set();
     this.onFinish = onFinish; this.onPause = onPause;
     this.board = $('game-board'); this.layer = $('notes-layer');
+    this.grid = $('beat-grid'); this.grid.replaceChildren();
+    this.beatLines = Array.from({ length: 32 }, () => {
+      const line = document.createElement('div'); line.className = 'beat-line'; this.grid.append(line); return line;
+    });
     this.layer.replaceChildren(); $('receptors').replaceChildren();
     this.pads = {};
     DIRECTIONS.forEach(direction => {
@@ -25,14 +28,13 @@ export class Game {
       this.pads[direction] = pad; $('receptors').append(pad);
     });
     $('playing-title').textContent = track.title;
-    $('game-level').textContent = LEVELS[chart.difficulty].label;
-    $('game-bpm').textContent = `${Math.round(chart.bpm)} BPM · ${chart.notes.length} passos`;
     $('game-length').textContent = formatTime(chart.duration);
     this.resize = () => {
       this.width = this.board.clientWidth; this.height = this.board.clientHeight;
       const style = getComputedStyle(this.board);
       this.size = parseFloat(style.getPropertyValue('--note-size'));
-      this.target = this.height - parseFloat(style.getPropertyValue('--target-bottom')) - this.size;
+      this.padSize = parseFloat(style.getPropertyValue('--pad-size')) || this.size;
+      this.target = this.height - parseFloat(style.getPropertyValue('--target-bottom')) - this.padSize / 2;
       this.renderNotes(this.transport.time() - this.offset);
     };
     this.observer = new ResizeObserver(this.resize); this.observer.observe(this.board);
@@ -84,18 +86,24 @@ export class Game {
     this.renderNotes(mapTime);
     $('game-progress-fill').style.width = `${Math.min(100, Math.max(0, time) / this.chart.duration * 100)}%`;
     $('elapsed').textContent = formatTime(time);
-    const energy = this.analysis.energies[Math.max(0, Math.floor(time / this.analysis.frameTime))] || 0;
-    const level = counting ? 0 : Math.min(1, energy / this.analysis.maxEnergy);
-    document.querySelectorAll('.live-equalizer i').forEach((bar, i) => {
-      bar.style.height = `${6 + level * (20 + Math.sin(time * 5 + i * .8) * 14 + (i % 3) * 10)}px`;
-    });
     if (time >= this.chart.duration + .25) { this.finish(); return; }
     this.frame = requestAnimationFrame(this.tick);
   };
   renderNotes(mapTime) {
+    const speed = (this.target + this.size / 2) / this.chart.travel;
+    const period = 60 / this.chart.bpm;
+    const phase = this.chart.phase ?? this.analysis.phase;
+    const firstBeat = Math.floor((mapTime - phase) / period) - 1;
+    this.beatLines.forEach((line, index) => {
+      const beat = firstBeat + index;
+      const y = this.target + (mapTime - (phase + beat * period)) * speed;
+      line.hidden = beat < 0 || y < 0 || y > this.height;
+      line.classList.toggle('measure-line', beat % 4 === 0);
+      line.style.transform = `translate3d(0,${y}px,0)`;
+    });
     for (const note of this.active) {
       const x = (DIRECTIONS.indexOf(note.dir) + .5) * this.width / 4 - this.size / 2;
-      const y = this.target + (mapTime - note.time) / this.chart.travel * (this.target + this.size);
+      const y = this.target + (mapTime - note.time) * speed - this.size / 2;
       note.el.style.transform = `translate3d(${x}px,${y}px,0)`;
     }
   }
@@ -133,7 +141,7 @@ export class Game {
   }
   particles(direction) {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const x = (DIRECTIONS.indexOf(direction) + .5) * this.width / 4, y = this.target + this.size / 2;
+    const x = (DIRECTIONS.indexOf(direction) + .5) * this.width / 4, y = this.target;
     for (let i = 0; i < 8; i++) {
       const particle = document.createElement('i'); particle.className = `hit-particle dir-${direction}`;
       const angle = Math.PI * 2 * i / 8;
@@ -156,6 +164,7 @@ export class Game {
   destroy() {
     this.state = 'ended'; this.transport.dispose(); cancelAnimationFrame(this.frame); clearTimeout(this.feedbackTimer);
     this.observer.disconnect(); this.layer.replaceChildren(); this.active.clear();
+    this.grid.replaceChildren();
     $('judgment').classList.remove('show');
     this.board.querySelectorAll('.hit-particle').forEach(el => el.remove());
     Object.values(this.pads).forEach(pad => pad.classList.remove('active', 'hit'));

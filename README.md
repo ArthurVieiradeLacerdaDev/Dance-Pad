@@ -156,3 +156,29 @@ npm test
 Os testes exercitam andamentos conhecidos, mapas completos, geração determinística, limites de densidade, silêncio, BPM manual, janelas temporais, pontuação e entrada do futuro adaptador. A revisão visual e de fluxo usa navegador real (desktop e celular); capturas locais de desenvolvimento ficam em `output/playwright/`, ignoradas pelo Git.
 
 Validação desta implementação: 8 testes automatizados aprovados; partida de 60 s com 44 acertos perfeitos via eventos de teclado, incluindo repetições ignoradas; pausa/retomada e retorno por Esc; importação de MP3, exportação de JSON e rejeição de arquivo sem áudio. Interface revisada em 375, 768, 1024 e 1440 px sem rolagem horizontal. A avaliação musical e a latência do tapete físico ainda devem ser conferidas pela equipe no equipamento da feira.
+
+## Animação vetorial do trio
+
+`assets/dancers.svg` contém contornos vetoriais extraídos do vídeo fornecido pela equipe, com fundo transparente e linhas ciano, verde e rosa da interface. A animação aparece na página inicial e ao lado da pista em telas maiores. São 33 desenhos a 12 quadros/s, reproduzidos de ida e volta em um loop de aproximadamente 5,33 s. O trecho inicial evita a pessoa que passa na frente do trio mais adiante no vídeo. A reprodução reversa faz parte do efeito do loop; a dança é decorativa e não acompanha o BPM da música selecionada.
+
+O SVG funciona sozinho, sem JavaScript, vídeo externo ou biblioteca. A preferência de movimento reduzido do navegador congela a primeira pose. `assets/dancers-poster.svg` é uma alternativa estática para outros usos. As cores são aplicadas por regiões dos contornos; braços cruzados podem mudar de cor conforme se movimentam.
+
+Para refazer a extração, instale OpenCV e NumPy em seu ambiente Python e execute:
+
+```powershell
+python scripts/vectorize_dancers.py "caminho/para/video.mp4"
+```
+
+O script usa segmentação de fundo, detecção de bordas e simplificação dos caminhos. As máscaras foram ajustadas para este vídeo específico. A resolução original é 238 × 328; por isso o resultado mantém um aspecto de rabisco, com simplificações e pequenas variações no traço. O MP4 original não é necessário para exibir a animação no site.
+
+### Easter egg e leitura da pista
+
+Ao passar o mouse sobre o trio, o desenho dá lugar ao MP4 original, em loop e sem som. Ao sair, o vídeo pausa e o SVG reaparece. O arquivo `assets/dancers-original.mp4` acompanha o site; não depende do caminho temporário da gravação. Em aparelhos com toque, permanece a animação vetorial.
+
+Durante a partida, a pista usa praticamente toda a altura da tela, com largura ampliada. As notas são menores que os alvos (48/64 px no desktop, 38/52 px no celular), sem rastro. Linhas horizontais percorrem a pista no tempo de cada batida; uma linha mais forte marca cada grupo de quatro batidas. Notas e linhas usam o mesmo relógio e a mesma compensação de sincronia. O julgamento permanece baseado no instante em que o centro da nota encontra o centro do alvo.
+
+### Apresentação em monitor pequeno
+
+A partida agora tem apenas o cabeçalho com música, seleção e pausa/continuação. Pontuação, combo, melhor combo, precisão e animação ficam em uma faixa estreita à esquerda. A pista preenche o restante da largura e toda a altura abaixo do cabeçalho; use F11 no navegador para aproveitar a tela inteira. Medido no navegador: 90,2% da largura em 1024×600, 90,7% em 1366×768 e 92,4% em 1920×1080. Em celulares, a faixa lateral mantém largura mínima para legibilidade.
+
+O resultado aparece automaticamente ao final, com classificação S–D, pontos, precisão, melhor combo, contagem de julgamentos e um resumo de passos acertados com orientação para a próxima tentativa. A conclusão foi validada com uma faixa curta até o fim, incluindo abertura do resultado e retorno à seleção.
