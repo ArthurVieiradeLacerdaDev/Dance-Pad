@@ -182,3 +182,9 @@ Durante a partida, a pista usa praticamente toda a altura da tela, com largura a
 A partida agora tem apenas o cabeçalho com música, seleção e pausa/continuação. Pontuação, combo, melhor combo, precisão e animação ficam em uma faixa estreita à esquerda. A pista preenche o restante da largura e toda a altura abaixo do cabeçalho; use F11 no navegador para aproveitar a tela inteira. Medido no navegador: 90,2% da largura em 1024×600, 90,7% em 1366×768 e 92,4% em 1920×1080. Em celulares, a faixa lateral mantém largura mínima para legibilidade.
 
 O resultado aparece automaticamente ao final, com classificação S–D, pontos, precisão, melhor combo, contagem de julgamentos e um resumo de passos acertados com orientação para a próxima tentativa. A conclusão foi validada com uma faixa curta até o fim, incluindo abertura do resultado e retorno à seleção.
+
+### Tela cheia e correção da queda das notas
+
+O botão Tela cheia no cabeçalho da partida ativa a API de tela cheia do navegador e permite sair pelo mesmo botão. O rótulo acompanha mudanças do navegador; ao voltar à seleção, a tela cheia é encerrada. A ação depende do suporte do navegador e precisa ser acionada pelo jogador.
+
+A posição das notas agora usa as dimensões efetivamente calculadas pelo navegador para notas e alvos. Ler `clamp(...)` das variáveis CSS com `parseFloat` produzia `NaN`, invalidando o transform e prendendo as notas no canto superior esquerdo. A medição dos elementos resolve também os tamanhos em unidades de viewport ao redimensionar ou entrar em tela cheia.

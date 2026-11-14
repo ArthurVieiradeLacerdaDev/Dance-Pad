@@ -89,3 +89,10 @@ body.playing{overflow:hidden}
 #result-hits{line-height:1.8;color:var(--muted)}
 .results-dialog{max-height:calc(100dvh - 24px);overflow:auto}
 @media(max-width:650px){.game-screen{padding:3px;gap:3px}.game-top{height:36px;min-height:36px}.game-top>.button{font-size:9px;padding:5px 7px;min-height:32px}.game-top h2{font-size:12px;max-width:50vw}.game-top .eyebrow{font-size:6px}.play-layout{grid-template-columns:64px minmax(0,1fr);gap:4px}.score-panel{padding:10px 2px 0;gap:8px}.score-panel>.eyebrow{font-size:7px}.score-panel>strong{font-size:16px}.combo-number>span{font-size:27px}.score-detail{font-size:9px}.score-detail b{font-size:15px}.game-board{--pad-size:clamp(42px,11vw,68px);--note-size:clamp(32px,8vw,49px);--target-bottom:32px}.pad{padding:6px}.note{padding:5px}.score-panel .dance-easter-egg{max-height:22dvh}.combo-number small{font-size:7px}}
+
+.game-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:none}
+.game-actions .button{min-height:34px;padding:6px 10px;font-size:11px;white-space:nowrap}
+.game-actions .icon{width:16px;height:16px}
+.game-top>div:not(.game-actions){min-width:0;flex:1}
+.game-top h2{max-width:100%}
+@media(max-width:650px){.game-actions{gap:3px}.game-actions .button{font-size:9px;padding:5px 6px;min-height:32px}.game-actions .icon{width:12px;height:12px}#fullscreen-button>span{display:none}}

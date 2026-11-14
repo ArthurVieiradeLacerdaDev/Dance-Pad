@@ -131,6 +131,7 @@ async function withBusy(action) {
 }
 
 function showLibrary() {
+  if (document.fullscreenElement === document.documentElement) document.exitFullscreen().catch(() => {});
   game?.destroy(); game = null; input.reset(); stopPreview();
   $('results-dialog').close(); $('library').hidden = false; $('game-screen').hidden = true;
   document.body.classList.remove('playing'); $('pause-button').querySelector('span').textContent = 'Pausar';
@@ -195,6 +196,23 @@ function releasePointer(event) {
 }
 $('start-button').addEventListener('click', startGame);
 $('leave-game').addEventListener('click', showLibrary);
+const fullscreenButton = $('fullscreen-button');
+function updateFullscreenButton() {
+  const active = !!document.fullscreenElement;
+  fullscreenButton.setAttribute('aria-pressed', String(active));
+  fullscreenButton.querySelector('span').textContent = active ? 'Sair da tela cheia' : 'Tela cheia';
+  fullscreenButton.title = active ? 'Sair da tela cheia' : 'Ativar tela cheia';
+  fullscreenButton.setAttribute('aria-label', fullscreenButton.title);
+}
+fullscreenButton.disabled = !document.fullscreenEnabled;
+updateFullscreenButton();
+fullscreenButton.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch { toast('Não foi possível ativar a tela cheia neste navegador.'); }
+});
+document.addEventListener('fullscreenchange', updateFullscreenButton);
 $('pause-button').addEventListener('click', togglePause); $('resume-button').addEventListener('click', togglePause);
 $('result-back').addEventListener('click', showLibrary); $('replay-button').addEventListener('click', startGame);
 $('results-dialog').addEventListener('cancel', event => { event.preventDefault(); showLibrary(); });

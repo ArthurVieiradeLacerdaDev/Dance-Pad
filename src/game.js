@@ -31,10 +31,15 @@ export class Game {
     $('game-length').textContent = formatTime(chart.duration);
     this.resize = () => {
       this.width = this.board.clientWidth; this.height = this.board.clientHeight;
-      const style = getComputedStyle(this.board);
-      this.size = parseFloat(style.getPropertyValue('--note-size'));
-      this.padSize = parseFloat(style.getPropertyValue('--pad-size')) || this.size;
-      this.target = this.height - parseFloat(style.getPropertyValue('--target-bottom')) - this.padSize / 2;
+      // Custom properties can contain clamp()/vw/dvh, not a numeric px value.
+      // Measure the resolved elements so responsive/fullscreen sizes stay finite.
+      const probe = document.createElement('div');
+      probe.className = 'note'; probe.style.visibility = 'hidden';
+      probe.setAttribute('aria-hidden', 'true'); this.layer.append(probe);
+      this.size = parseFloat(getComputedStyle(probe).width); probe.remove();
+      this.padSize = parseFloat(getComputedStyle(this.pads.UP).width);
+      const bottom = parseFloat(getComputedStyle($('receptors')).bottom);
+      this.target = this.height - bottom - this.padSize / 2;
       this.renderNotes(this.transport.time() - this.offset);
     };
     this.observer = new ResizeObserver(this.resize); this.observer.observe(this.board);
