@@ -1,476 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Dance Pad - Arcade Mode</title>
-    <style>
-        /* Estética Arcade Neon */
-        body {
-            background-color: #050510;
-            color: #fff;
-            text-align: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        h1 {
-            color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
-            font-size: 40px;
-            margin-top: 20px;
-        }
-
-        /* Menu de Seleção de Música */
-        #menu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 50px;
-        }
-
-        .song-btn {
-            background: transparent;
-            border: 2px solid #ff00ff;
-            color: #ff00ff;
-            padding: 15px 40px;
-            margin: 10px;
-            font-size: 24px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 400px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .song-btn:hover {
-            background: #ff00ff;
-            color: #fff;
-            box-shadow: 0 0 20px #ff00ff;
-            transform: scale(1.05);
-        }
-
-        /* Status do MQTT */
-        #status-bar {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Tela de Jogo (Escondida por padrão) */
-        #game-screen {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-
-        /* HUD - Placar e Combo */
-        #hud {
-            position: absolute;
-            top: 20px;
-            left: 40px;
-            text-align: left;
-        }
-
-        .pontos {
-            font-size: 32px;
-            color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
-            font-weight: 900;
-        }
-
-        .combo {
-            font-size: 24px;
-            color: #ff00ff;
-            margin-top: 10px;
-            font-style: italic;
-        }
-
-        #feedback {
-            font-size: 40px;
-            font-weight: bold;
-            margin-top: 20px;
-            position: absolute;
-            left: 40px;
-            top: 120px;
-        }
-
-        /* Pista de Dança Centralizada */
-        #game-board {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 440px;
-            height: 100vh;
-            border-left: 2px solid rgba(255, 255, 255, 0.1);
-            border-right: 2px solid rgba(255, 255, 255, 0.1);
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(20, 20, 50, 0.8) 100%);
-        }
-
-        /* Zonas de Acerto Físicas (Hitboxes) */
-        .hitbox-container {
-            position: absolute;
-            bottom: 50px;
-            width: 100%;
-            height: 100px;
-        }
-
-        .pad {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border: 3px solid #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border-radius: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            transition: 0.1s;
-        }
-
-        /* Cores Neon para cada direção ao pisar */
-        #pad-LEFT.active {
-            border-color: #ff0055;
-            box-shadow: 0 0 25px #ff0055;
-            background: rgba(255, 0, 85, 0.3);
-            transform: scale(1.1);
-        }
-
-        #pad-UP.active {
-            border-color: #00ffcc;
-            box-shadow: 0 0 25px #00ffcc;
-            background: rgba(0, 255, 204, 0.3);
-            transform: scale(1.1);
-        }
-
-        #pad-DOWN.active {
-            border-color: #00aaff;
-            box-shadow: 0 0 25px #00aaff;
-            background: rgba(0, 170, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        #pad-RIGHT.active {
-            border-color: #ffaa00;
-            box-shadow: 0 0 25px #ffaa00;
-            background: rgba(255, 170, 0, 0.3);
-            transform: scale(1.1);
-        }
-
-        /* Notas caindo */
-        .note {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border-radius: 15px;
-            border: 2px solid #fff;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 10px #fff;
-        }
-
-        #btn-voltar {
-            position: absolute;
-            top: 20px;
-            right: 40px;
-            background: #333;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-    </style>
-    <!-- Biblioteca MQTT -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
-        type="text/javascript"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c1117">
+  <meta name="description" content="Evil Dance: entre no ritmo com quatro direções. Um dance pad brasileiro para jogar no teclado ou no tapete.">
+  <title>Evil Dance · Sinta o ritmo</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-
-    <!-- TELA 1: MENU PRINCIPAL -->
-    <div id="menu">
-        <h1>SELECIONE A FAIXA</h1>
-        <div id="lista-musicas">
-            <!-- Botões gerados via JS -->
-        </div>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="i-arrow" viewBox="0 0 48 48"><path d="M24 7 7 24h11v17h12V24h11L24 7Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 10v4m4-8v12m5-16v20m5-16v12m4-8v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6 9h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1m-10 4h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m10 5-7 7 7 7M3 12h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14m8-14v14" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
+  </defs></svg>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Evil Dance, início"><span class="brand-mark"><svg><use href="#i-arrow"/></svg></span><span>evil<span class="brand-light">dance</span><small>QUATRO DIREÇÕES. UM RITMO.</small></span></a>
+    <nav aria-label="Navegação principal"><button class="nav-link active" id="nav-library">Jogar</button><button class="nav-link" id="nav-how">Como funciona</button></nav>
+    <span class="connection"><span class="status-dot"></span><svg class="icon"><use href="#i-keyboard"/></svg><span>Modo teclado</span></span>
+  </header>
+  <main id="library" class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy"><span class="eyebrow"><span class="tiny-line"></span> APERTE O PLAY. ENCONTRE SEU RITMO.</span><h1 id="hero-title">Seu próximo passo<br>é <em>no ritmo.</em></h1><p>Escolha uma música, acompanhe as setas e deixe<br class="desktop-break"> o resto com os seus pés. Ou com os seus dedos.</p><div class="hero-meta"><span><svg class="icon"><use href="#i-spark"/></svg> Fases geradas pelo áudio</span><span class="meta-divider"></span><span>Feito para todo mundo jogar</span></div></div>
+      <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="art-label art-label-top">ENCONTRE O SEU FLOW</span><div class="dance-diamond"><span class="diamond-center">evil<br><b>dance</b></span><span class="art-pad art-up"><svg><use href="#i-arrow"/></svg></span><span class="art-pad art-left"><svg><use href="#i-arrow"/></svg></span><span class="art-pad art-right"><svg><use href="#i-arrow"/></svg></span><span class="art-pad art-down"><svg><use href="#i-arrow"/></svg></span></div><span class="art-label art-label-bottom"><i></i> O PRÓXIMO MOVIMENTO É SEU</span></div>
+    </section>
+    <div class="library-layout">
+      <section class="music-library" aria-labelledby="library-title">
+        <div class="section-heading"><div><span class="eyebrow muted">SUA PISTA COMEÇA AQUI</span><h2 id="library-title">Escolha seu som<span class="accent">.</span></h2></div><button id="import-button" class="button secondary"><svg class="icon"><use href="#i-upload"/></svg> Importar áudio</button></div>
+        <div class="filter-bar" role="group" aria-label="Filtrar músicas"><button class="filter active" data-filter="demo" aria-pressed="true">Bases brasileiras <span>3</span></button><button class="filter" data-filter="local" aria-pressed="false">Do projeto <span>3</span></button><button class="filter" data-filter="recommended" aria-pressed="false">Sugestões para a feira <span>3</span></button><button class="filter" data-filter="imported" aria-pressed="false">Importadas <span id="import-count">0</span></button></div>
+        <p class="filter-description" id="filter-description">Três instrumentais originais para testar agora. Sem precisar baixar nada.</p>
+        <div id="song-list" class="song-list"></div>
+        <div class="automatic-note"><span class="mini-icon"><svg class="icon"><use href="#i-wave"/></svg></span><div><strong>A música faz o mapa. Você faz os movimentos.</strong><p>O gerador detecta batidas e ataques do áudio e cria uma sequência para o seu nível.</p></div><span class="auto-tag">AUTO MAP</span></div>
+      </section>
+      <aside class="setup-panel" aria-labelledby="setup-title">
+        <div class="panel-label"><span class="status-dot"></span> SUA PRÓXIMA PARTIDA <svg class="icon"><use href="#i-settings"/></svg></div>
+        <div id="selected-cover" class="selected-cover cover-forro"><span class="cover-number">01 / BRASIL EM MOVIMENTO</span><div class="cover-orbits"></div><span class="cover-title">Balanço<br><em>do Nordeste</em></span><svg class="cover-wave"><use href="#i-wave"/></svg><span class="cover-bottom">BASE ORIGINAL · FORRÓ</span></div>
+        <h3 id="setup-title">Balanço do Nordeste</h3><p id="selected-artist" class="muted">Evil Dance · instrumental de teste</p>
+        <div class="track-stats"><span><b id="track-bpm">100</b> <small>BPM</small></span><span><b id="track-duration">1:04</b> <small>ÁUDIO</small></span><span><b id="track-notes">—</b> <small>PASSOS</small></span></div>
+        <label class="field-label" id="difficulty-label">Seu nível</label><div class="segmented" role="group" aria-labelledby="difficulty-label"><button class="active" data-difficulty="easy" aria-pressed="true">Primeiros passos</button><button data-difficulty="normal" aria-pressed="false">No ritmo</button><button data-difficulty="hard" aria-pressed="false">Desafio</button></div><p id="difficulty-hint" class="field-hint">Uma seta por vez, com espaço para respirar.</p>
+        <div class="setting-row"><label for="session-length">Duração da partida</label><select id="session-length"><option value="60">Modo feira · 60 s</option><option value="full">Música completa</option></select></div>
+        <div class="wave-preview"><canvas id="waveform" height="54" aria-label="Forma de onda da música selecionada"></canvas></div>
+        <p id="analysis-status" class="analysis-status" role="status">O mapa é gerado antes de começar.</p>
+        <button id="start-button" class="button primary start-button"><svg class="icon"><use href="#i-play"/></svg><span>Vamos jogar</span><span class="button-tail">↗</span></button>
+        <div class="panel-actions"><button id="preview-button" class="text-button">Ouvir prévia</button><span>·</span><button id="export-button" class="text-button">Exportar fase</button></div>
+        <details class="fine-tuning"><summary>Ajustar sincronia e ritmo</summary><label for="timing-offset">Compensação: <output id="offset-value">0 ms</output></label><input id="timing-offset" type="range" min="-250" max="250" step="5" value="0"><p>Valor positivo atrasa as setas. Use áudio com fio para uma resposta mais rápida.</p><label for="manual-bpm">BPM manual (opcional)</label><input id="manual-bpm" type="number" min="60" max="180" placeholder="Usar detecção automática"><p>Ajuda quando o detector encontra metade ou o dobro do ritmo.</p></details>
+      </aside>
     </div>
-    <div id="status-bar">MQTT: Conectando...</div>
-
-    <!-- TELA 2: GAMEPLAY -->
-    <div id="game-screen">
-        <button id="btn-voltar" onclick="voltarAoMenu()">⬅ Voltar ao Menu</button>
-
-        <div id="hud">
-            <div class="pontos">SCORE: <span id="score">0</span></div>
-            <div class="combo" id="combo-display">Combo: 0x</div>
-            <div id="feedback"></div>
-        </div>
-
-        <div id="game-board">
-            <div class="hitbox-container">
-                <div id="pad-LEFT" class="pad" style="left: 20px;">⬅️</div>
-                <div id="pad-UP" class="pad" style="left: 120px;">⬆️</div>
-                <div id="pad-DOWN" class="pad" style="left: 220px;">⬇️</div>
-                <div id="pad-RIGHT" class="pad" style="left: 320px;">➡️</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Áudio Invisível -->
-    <audio id="audio-player"></audio>
-
-    <script>
-        // ==========================================
-        // 1. CATÁLOGO DE MÚSICAS E BEATMAPS
-        // ==========================================
-        // Dica: Baixe os mp3 para a mesma pasta do projeto e troque os "src" (ex: "./zelda.mp3")
-        const catalogo = [
-            {
-                id: 0,
-                titulo: "Ai se eu te pego",
-                src: "Ai Se Eu Te Pego MP3.mp3",
-                velocidadeSeta: 2.5,
-                beatmap: [
-                    { time: 2.0, dir: "UP" }, { time: 2.5, dir: "DOWN" },
-                    { time: 4.0, dir: "LEFT" }, { time: 4.5, dir: "RIGHT" },
-                    { time: 6.0, dir: "UP" }, { time: 6.5, dir: "UP" }
-
-                ]
-            },
-            {
-                id: 1,
-                titulo: "Evidências",
-                src: "evidencias.mp3", // Troque para o mp3 real
-                velocidadeSeta: 3.5,
-                beatmap: [
-                    { time: 1.5, dir: "LEFT" }, { time: 3.0, dir: "RIGHT" },
-                    { time: 4.5, dir: "UP" }, { time: 6.0, dir: "DOWN" }
-                ]
-            },
-            {
-                id: 2,
-                titulo: "Pós",
-                src: "pos.mp3", // Troque para o mp3 real
-                velocidadeSeta: 5.0,
-                beatmap: [
-                    { time: 1.0, dir: "DOWN" }, { time: 1.5, dir: "UP" },
-                    { time: 2.0, dir: "LEFT" }, { time: 2.5, dir: "RIGHT" },
-                    { time: 3.0, dir: "DOWN" }, { time: 3.5, dir: "UP" }
-                ]
-            }
-        ];
-
-        // ==========================================
-        // 2. LÓGICA DO MENU
-        // ==========================================
-        const menuDiv = document.getElementById("menu");
-        const gameScreen = document.getElementById("game-screen");
-        const listaMusicasDiv = document.getElementById("lista-musicas");
-        const audioPlayer = document.getElementById("audio-player");
-
-        let musicaAtual = null;
-        let jogoRodando = false;
-
-        // Renderiza os botões do menu
-        catalogo.forEach((musica, index) => {
-            const btn = document.createElement("button");
-            btn.className = "song-btn";
-            btn.innerText = musica.titulo;
-            btn.onclick = () => iniciarPartida(index);
-            listaMusicasDiv.appendChild(btn);
-        });
-
-        function iniciarPartida(index) {
-            musicaAtual = catalogo[index];
-
-            // Reseta variáveis do jogo
-            score = 0;
-            combo = 0;
-            notaAtualIndex = 0;
-            atualizarHUD();
-
-            // Limpa setas antigas da tela
-            activeNotes.forEach(note => gameBoard.removeChild(note.el));
-            activeNotes = [];
-
-            // Troca de tela
-            menuDiv.style.display = "none";
-            gameScreen.style.display = "block";
-
-            // Prepara e toca a música
-            audioPlayer.src = musicaAtual.src;
-            audioPlayer.play();
-
-            jogoRodando = true;
-            requestAnimationFrame(gameLoop);
-            requestAnimationFrame(maestroLoop);
-        }
-
-        function voltarAoMenu() {
-            jogoRodando = false;
-            audioPlayer.pause();
-            audioPlayer.currentTime = 0;
-            gameScreen.style.display = "none";
-            menuDiv.style.display = "flex";
-        }
-
-        // ==========================================
-        // 3. COMUNICAÇÃO MQTT (Fica rodando no fundo)
-        // ==========================================
-        const broker = "broker.hivemq.com";
-        const port = 8884;
-        const clientId = "arcade_web_" + Math.random().toString(16).substring(2, 8);
-        const topic = "seminario/str/tapete/movimento";
-        const client = new Paho.MQTT.Client(broker, port, clientId);
-
-        client.onMessageArrived = (message) => {
-            if (!jogoRodando) return; // Só processa pisão se estiver jogando
-            const direcao = message.payloadString.trim();
-            ativarHitbox(direcao);
-            avaliarAcerto(direcao);
-        };
-
-        client.connect({
-            useSSL: true,
-            onSuccess: () => {
-                document.getElementById("status-bar").innerText = "MQTT: Conectado e Aguardando Tapete";
-                document.getElementById("status-bar").style.color = "#00ffcc";
-                client.subscribe(topic);
-            }
-        });
-
-        // ==========================================
-        // 4. MOTOR DO JOGO (RENDER E AVALIAÇÃO)
-        // ==========================================
-        let score = 0;
-        let combo = 0;
-        let activeNotes = [];
-        let notaAtualIndex = 0;
-
-        const gameBoard = document.getElementById("game-board");
-        // As posições batem com o style left das hitboxes
-        const columns = { "LEFT": 20, "UP": 120, "DOWN": 220, "RIGHT": 320 };
-        const emojis = { "LEFT": "⬅️", "UP": "⬆️", "DOWN": "⬇️", "RIGHT": "➡️" };
-
-        function maestroLoop() {
-            if (!jogoRodando) return;
-            let tempoAudio = audioPlayer.currentTime;
-
-            if (notaAtualIndex < musicaAtual.beatmap.length) {
-                let proximaNota = musicaAtual.beatmap[notaAtualIndex];
-                if (tempoAudio >= proximaNota.time) {
-                    spawnNote(proximaNota.dir);
-                    notaAtualIndex++;
-                }
-            }
-            requestAnimationFrame(maestroLoop);
-        }
-
-        function spawnNote(direcao) {
-            const noteEl = document.createElement("div");
-            noteEl.classList.add("note");
-            noteEl.innerText = emojis[direcao];
-            noteEl.style.left = columns[direcao] + "px";
-            noteEl.style.top = "-80px"; // Nasce fora da tela em cima
-            gameBoard.appendChild(noteEl);
-
-            activeNotes.push({ el: noteEl, direction: direcao, y: -80 });
-        }
-
-        function gameLoop() {
-            if (!jogoRodando) return;
-            const boardHeight = gameBoard.clientHeight;
-            const speed = musicaAtual.velocidadeSeta;
-
-            for (let i = activeNotes.length - 1; i >= 0; i--) {
-                let note = activeNotes[i];
-                note.y += speed;
-                note.el.style.top = note.y + "px";
-
-                // Passou do limite inferior (Erro por omissão)
-                if (note.y > boardHeight - 20) {
-                    gameBoard.removeChild(note.el);
-                    activeNotes.splice(i, 1);
-                    combo = 0; // Quebra o combo
-                    mostrarFeedback("MISS!", "#ff0055");
-                    atualizarHUD();
-                }
-            }
-            requestAnimationFrame(gameLoop);
-        }
-
-        function avaliarAcerto(direcaoInput) {
-            const boardHeight = gameBoard.clientHeight;
-            const zonaIdeal = boardHeight - 130; // Ajustado para o design novo
-            const lagRede = 35;
-            const tolerancia = 50;
-
-            const limiteSuperior = (zonaIdeal + lagRede) - tolerancia;
-            const limiteInferior = (zonaIdeal + lagRede) + tolerancia;
-
-            let notaIndex = activeNotes.findIndex(note => note.direction === direcaoInput);
-
-            if (notaIndex !== -1) {
-                let note = activeNotes[notaIndex];
-
-                if (note.y > limiteSuperior && note.y < limiteInferior) {
-                    // Acerto
-                    combo++;
-                    score += 100 * (1 + (combo * 0.1)); // Multiplicador de combo
-                    mostrarFeedback("PERFECT!", "#00ffcc");
-
-                    gameBoard.removeChild(note.el);
-                    activeNotes.splice(notaIndex, 1);
-                } else {
-                    // Erro por pisar cedo/tarde demais
-                    combo = 0;
-                    mostrarFeedback("BAD!", "#ffaa00");
-                }
-                atualizarHUD();
-            }
-        }
-
-        function ativarHitbox(direcao) {
-            const pad = document.getElementById("pad-" + direcao);
-            if (pad) {
-                pad.classList.add("active");
-                setTimeout(() => pad.classList.remove("active"), 120);
-            }
-        }
-
-        function mostrarFeedback(msg, cor) {
-            const fb = document.getElementById("feedback");
-            fb.innerText = msg;
-            fb.style.color = cor;
-            fb.style.textShadow = `0 0 15px ${cor}`;
-
-            // Reinicia a animação rápida
-            fb.style.transform = "scale(1.5)";
-            setTimeout(() => {
-                fb.style.transform = "scale(1)";
-            }, 50);
-
-            clearTimeout(fb.timer);
-            fb.timer = setTimeout(() => fb.innerText = "", 800);
-        }
-
-        function atualizarHUD() {
-            document.getElementById("score").innerText = Math.floor(score);
-            document.getElementById("combo-display").innerText = combo > 2 ? `Combo: ${combo}x` : "";
-        }
-    </script>
+    <section class="how-to" id="how-to" aria-labelledby="how-title"><div class="how-intro"><span class="eyebrow muted">É SÓ ENTRAR NO RITMO</span><h2 id="how-title">Quatro teclas.<br> Infinitas tentativas.</h2></div><div class="how-step"><span class="step-number">01</span><h3>Escolha e dê o play</h3><p>Comece em Primeiros passos. Você tem uma contagem antes da música.</p></div><div class="how-step"><span class="step-number">02</span><h3>Espere a seta chegar</h3><p>Aperte a direção quando a seta encontrar o alvo na parte de baixo da pista.</p><div class="key-hints"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd></div></div><div class="how-step"><span class="step-number">03</span><h3>Encontre seu flow</h3><p>Emende acertos e aumente seu combo. Espaço pausa. Esc volta para a seleção.</p></div></section>
+    <footer><span>EVIL DANCE <span class="footer-dot">/</span> FEITO PARA SE MOVIMENTAR</span><span>Teclado pronto <span class="footer-dot">·</span> Tapete MQTT em preparação</span></footer>
+  </main>
+  <section id="game-screen" class="game-screen" aria-label="Partida" hidden>
+    <div class="game-top"><button id="leave-game" class="button secondary"><svg class="icon"><use href="#i-back"/></svg> Seleção</button><div><span class="eyebrow muted">AGORA NA PISTA</span><h2 id="playing-title"></h2></div><button id="pause-button" class="button secondary"><svg class="icon"><use href="#i-pause"/></svg><span>Pausar</span></button></div>
+    <div class="play-layout"><aside class="score-panel"><span class="eyebrow muted">PONTUAÇÃO</span><strong id="score">000000</strong><div class="combo-number"><span id="combo">0</span><small>COMBO</small></div><div class="score-detail"><span>Melhor combo</span><b id="best-combo">0</b></div><div class="score-detail"><span>Precisão</span><b id="accuracy">—</b></div><div class="timing-guide"><span><i class="perfect-dot"></i> Perfeito <b>± 65 ms</b></span><span><i class="good-dot"></i> Muito bem <b>± 120 ms</b></span><span><i class="ok-dot"></i> Quase <b>± 180 ms</b></span></div><p class="game-help">Aperte quando a seta<br>encontrar o alvo.<br><kbd>Espaço</kbd> para pausar</p></aside>
+    <div class="stage-wrap"><div id="game-board" class="game-board"><div class="lane lane-left"></div><div class="lane lane-up"></div><div class="lane lane-down"></div><div class="lane lane-right"></div><div class="board-top-label">SIGA O RITMO</div><div class="hit-line"></div><div id="notes-layer"></div><div id="receptors" class="receptors"></div><div id="judgment" class="judgment" aria-hidden="true"></div><div id="game-overlay" class="game-overlay"><span id="countdown-label">PREPARE-SE</span><strong id="countdown">3</strong><button id="resume-button" class="button primary" hidden>Continuar partida</button></div></div><div class="game-progress"><div id="game-progress-fill"></div></div><div class="game-time"><span id="elapsed">0:00</span><span id="game-length">1:00</span></div></div>
+    <aside class="rhythm-panel"><span class="eyebrow muted">SEU RITMO</span><h3 id="game-level">Primeiros passos</h3><div class="live-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="game-bpm" class="bpm-display"></span><p>Um passo de cada vez.<br>O importante é se divertir.</p><div class="device-card"><svg class="icon"><use href="#i-keyboard"/></svg><strong>Você está no teclado</strong><span>Use as quatro setas<br>ou toque nos alvos.</span></div></aside></div>
+  </section>
+  <dialog id="results-dialog" class="results-dialog"><span class="eyebrow">PARTIDA CONCLUÍDA</span><div id="result-grade" class="result-grade">A</div><h2 id="result-title">Você encontrou seu ritmo!</h2><p id="result-song" class="muted"></p><div class="result-stats"><div><b id="result-score"></b><span>PONTOS</span></div><div><b id="result-accuracy"></b><span>PRECISÃO</span></div><div><b id="result-combo"></b><span>MELHOR COMBO</span></div></div><p id="result-hits"></p><div class="result-actions"><button id="result-back" class="button secondary">Escolher outra</button><button id="replay-button" class="button primary">Jogar de novo</button></div></dialog>
+  <input id="audio-import" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac" hidden>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>Ative o JavaScript para jogar Evil Dance.</noscript>
+  <script type="module" src="src/app.js"></script>
 </body>
-
 </html>
