@@ -102,7 +102,7 @@ function renderLeaderboard() {
     return;
   }
 
-  list.slice(0, 15).forEach((entry, i) => {
+  list.forEach((entry, i) => {
     const tr = document.createElement('tr');
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
     const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;

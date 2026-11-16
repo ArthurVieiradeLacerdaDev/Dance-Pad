@@ -32,7 +32,7 @@ export function loadLeaderboard() {
 
 export function saveLeaderboard(list) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 100)));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   } catch {}
 }
 
@@ -55,9 +55,8 @@ export function addLeaderboardEntry({ name, score, accuracy, bestCombo, stageRea
   current.push(entry);
   // Ordena por pontuação descrescente, desempate por precisão
   current.sort((a, b) => b.score - a.score || b.accuracy - a.accuracy);
-  const updated = current.slice(0, 50); // Top 50 mantido
-  saveLeaderboard(updated);
-  return { entry, rank: updated.findIndex(e => e.id === entry.id) + 1, list: updated };
+  saveLeaderboard(current); // Sem limite de quantidade
+  return { entry, rank: current.findIndex(e => e.id === entry.id) + 1, list: current };
 }
 
 export function clearLeaderboard() {
