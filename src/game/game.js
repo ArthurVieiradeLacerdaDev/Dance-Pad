@@ -116,6 +116,12 @@ export class Game {
     const pad = this.pads[direction];
     if (!pad || this.state !== 'playing') return;
     pad.classList.add('active');
+    clearTimeout(pad._activeTimer);
+    pad._activeTimer = setTimeout(() => {
+      pad._activeTimer = null;
+      pad.classList.remove('active');
+    }, 120);
+
     const time = this.transport.time(); if (time < 0) return;
     const mapTime = time - this.offset;
     let closest = null, distance = Infinity;
@@ -131,7 +137,12 @@ export class Game {
     } else { recordJudgment(this.score, 'wrong'); this.feedback('wrong'); }
     this.updateHUD();
   }
-  release(direction) { this.pads[direction]?.classList.remove('active'); }
+  release(direction) {
+    const pad = this.pads[direction];
+    if (!pad) return;
+    if (pad._activeTimer) return; // Permite que o pulso visual de 120ms termine
+    pad.classList.remove('active');
+  }
   consume(note) { note.judged = true; note.el?.remove(); note.el = null; this.active.delete(note); }
   feedback(type, error = 0) {
     const labels = { perfect: 'Perfeito!', good: 'Muito bem!', ok: 'Quase!', miss: 'Continue!', wrong: 'No ritmo!' };

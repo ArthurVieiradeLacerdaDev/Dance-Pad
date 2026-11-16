@@ -40,14 +40,20 @@ function toast(message) {
 // -------------------------------------------------------------
 const mqttClient = new MqttClient();
 let mqttConfig = {
-  url: 'ws://localhost:9001',
+  url: 'wss://broker.hivemq.com:8884/mqtt',
   topic: 'str/ddr/passos',
   cmdTopic: 'str/ddr/comando'
 };
 
 try {
   const savedMqtt = localStorage.getItem('evil-dance-mqtt-config');
-  if (savedMqtt) mqttConfig = { ...mqttConfig, ...JSON.parse(savedMqtt) };
+  if (savedMqtt) {
+    const parsed = JSON.parse(savedMqtt);
+    // Se o usuário tinha salvo localhost:9001 antes do Mosquitto estar de pé, usa HiveMQ para testes
+    if (parsed.url && parsed.url !== 'ws://localhost:9001') {
+      mqttConfig = { ...mqttConfig, ...parsed };
+    }
+  }
 } catch {}
 
 function updateConnectionUI(state, detail = '') {
@@ -77,11 +83,25 @@ mqttClient.addEventListener('status', ({ detail }) => {
 mqttClient.addEventListener('message', ({ detail }) => {
   if (detail.topic === mqttConfig.topic) {
     const accepted = input.receive(detail.payload);
+    let parsedDir = '';
+    try {
+      const parsed = typeof detail.payload === 'string' ? JSON.parse(detail.payload) : detail.payload;
+      parsedDir = parsed.seta || parsed.dir || parsed.direction || '';
+    } catch {
+      parsedDir = String(detail.payload).trim();
+    }
+    
     console.log(`%c[MQTT PASSO] 👟 Recebido no tópico de passos:`, 'color: #ea8fc8; font-weight: bold;', {
+      direcao: parsedDir.toUpperCase(),
       payload: detail.payload,
       aceitoPeloJogo: accepted,
-      estadoJogo: game ? game.state : 'sem partida ativa'
+      estadoJogo: game ? game.state : 'fora de partida'
     });
+
+    // Se estiver fora de partida, exibe aviso visual imediato na tela para teste
+    if (!game || game.state !== 'playing') {
+      toast(`👟 Pisada recebida do broker: ${parsedDir.toUpperCase()} (Conexão OK!)`);
+    }
   }
 });
 

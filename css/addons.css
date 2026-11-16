@@ -61,6 +61,13 @@
   background: rgba(8, 12, 18, 0.85);
   backdrop-filter: blur(6px);
 }
+
+/* Feedback visual imediato para pisadas MQTT e teclas */
+.pad.active {
+  transform: scale(1.15) !important;
+  filter: brightness(1.6) drop-shadow(0 0 20px var(--lane-color)) !important;
+  transition: transform 0.05s ease, filter 0.05s ease !important;
+}
 .modal-config h3 {
   font-size: 18px;
   margin-bottom: 6px;
