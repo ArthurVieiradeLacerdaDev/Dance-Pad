@@ -49,9 +49,12 @@ try {
   const savedMqtt = localStorage.getItem('evil-dance-mqtt-config');
   if (savedMqtt) {
     const parsed = JSON.parse(savedMqtt);
-    // Se o usuário tinha salvo localhost:9001 antes do Mosquitto estar de pé, usa HiveMQ para testes
+    // Se estiver apontando para ws://localhost:9001 (que ainda não existe), ignora e força o HiveMQ público
     if (parsed.url && parsed.url !== 'ws://localhost:9001') {
       mqttConfig = { ...mqttConfig, ...parsed };
+    } else {
+      // Atualiza o localStorage para o HiveMQ público para evitar ficar desconectado
+      localStorage.setItem('evil-dance-mqtt-config', JSON.stringify(mqttConfig));
     }
   }
 } catch {}
