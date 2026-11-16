@@ -148,13 +148,18 @@
 
   <!-- Modal Configuração MQTT -->
   <dialog id="mqtt-modal" class="modal-config">
-    <h3>📡 Conexão MQTT (Broker Local / ESP32)</h3>
-    <p>Conecte o navegador ao broker Mosquitto do Victor via WebSockets para receber as pisadas do tapete em tempo real.</p>
+    <h3>📡 Conexão MQTT (Broker / ESP32)</h3>
+    <p>Conecte o navegador a um broker MQTT via WebSockets para receber as pisadas do tapete em tempo real.</p>
     
+    <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+      <button type="button" id="mqtt-preset-hivemq" class="button secondary" style="font-size: 11px; padding: 5px 9px;">🌐 HiveMQ Público (WSS)</button>
+      <button type="button" id="mqtt-preset-local" class="button secondary" style="font-size: 11px; padding: 5px 9px;">💻 Mosquitto Local (WS)</button>
+    </div>
+
     <div class="form-group">
       <label for="mqtt-url-input">Endereço WebSocket do Broker</label>
-      <input type="text" id="mqtt-url-input" placeholder="ws://localhost:9001" value="ws://localhost:9001">
-      <small class="muted" style="font-size: 10px;">Ex: ws://localhost:9001 ou ws://192.168.43.100:9001 (IP do note)</small>
+      <input type="text" id="mqtt-url-input" placeholder="wss://broker.hivemq.com:8884/mqtt" value="wss://broker.hivemq.com:8884/mqtt">
+      <small class="muted" style="font-size: 10px;">Ex: wss://broker.hivemq.com:8884/mqtt ou ws://localhost:9001</small>
     </div>
 
     <div class="form-group">

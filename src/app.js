@@ -334,8 +334,11 @@ window.dancePad = Object.freeze({
   mqtt: mqttClient
 });
 
-window.addEventListener('blur', () => game?.pause());
-document.addEventListener('visibilitychange', () => { if (document.hidden) { game?.pause(); stopPreview(); } });
+// Em jogos de tapete / testes com broker externo, não pausar automaticamente ao perder o foco (blur)
+// O jogador pode estar no tapete físico ou testando em outra janela/aba
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopPreview();
+});
 
 const pointerDirections = new Map();
 $('receptors').addEventListener('pointerdown', event => {
@@ -388,13 +391,32 @@ $('player-name-input').value = getSavedPlayerName();
 $('player-name-input').addEventListener('change', e => savePlayerName(e.target.value));
 
 // Modal MQTT
-$('mqtt-settings-btn').addEventListener('click', () => {
+function openMqttModal() {
   $('mqtt-url-input').value = mqttConfig.url;
   $('mqtt-topic-input').value = mqttConfig.topic;
   $('mqtt-cmd-topic-input').value = mqttConfig.cmdTopic;
-  $('mqtt-modal').showModal();
+  const modal = $('mqtt-modal');
+  try {
+    if (!modal.open) modal.showModal();
+  } catch {
+    modal.setAttribute('open', '');
+  }
+}
+
+$('mqtt-settings-btn').addEventListener('click', openMqttModal);
+$('connection-indicator').addEventListener('click', openMqttModal);
+
+$('mqtt-preset-hivemq')?.addEventListener('click', () => {
+  $('mqtt-url-input').value = 'wss://broker.hivemq.com:8884/mqtt';
 });
+$('mqtt-preset-local')?.addEventListener('click', () => {
+  $('mqtt-url-input').value = 'ws://localhost:9001';
+});
+
 $('mqtt-close-btn').addEventListener('click', () => $('mqtt-modal').close());
+$('mqtt-modal').addEventListener('click', event => {
+  if (event.target === $('mqtt-modal')) $('mqtt-modal').close();
+});
 
 $('mqtt-connect-btn').addEventListener('click', () => {
   mqttConfig.url = $('mqtt-url-input').value.trim() || 'ws://localhost:9001';

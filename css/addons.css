@@ -6,6 +6,10 @@
   align-items: center;
   gap: 10px;
 }
+.connection {
+  cursor: pointer;
+  user-select: none;
+}
 .btn-mqtt-toggle {
   background: #19232d;
   border: 1px solid var(--line);
@@ -17,6 +21,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 .btn-mqtt-toggle:hover {
   background: #22313f;
@@ -37,13 +43,19 @@
 
 /* Modal / Configuração MQTT */
 .modal-config {
-  width: min(480px, calc(100% - 32px));
-  padding: 24px;
-  border: 1px solid var(--line);
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(520px, calc(100% - 32px));
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid #3b4b5a;
   background: #141d27;
   color: var(--text);
-  border-radius: 12px;
-  box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+  border-radius: 14px;
+  box-shadow: 0 25px 90px rgba(0,0,0,0.85);
+  z-index: 99999;
 }
 .modal-config::backdrop {
   background: rgba(8, 12, 18, 0.85);
