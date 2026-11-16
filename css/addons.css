@@ -1,0 +1,205 @@
+/* Estilos adicionais: Modo Competição, Painel MQTT, Ranking Geral e Responsividade */
+
+/* Conexão / Status MQTT */
+.connection-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-mqtt-toggle {
+  background: #19232d;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-mqtt-toggle:hover {
+  background: #22313f;
+  border-color: var(--cyan);
+}
+.status-dot.connected {
+  background: var(--lime);
+  box-shadow: 0 0 10px #bcf336aa;
+}
+.status-dot.connecting {
+  background: var(--yellow);
+  box-shadow: 0 0 10px #f1ca78aa;
+}
+.status-dot.error, .status-dot.disconnected {
+  background: #ff5c77;
+  box-shadow: 0 0 8px #ff5c7788;
+}
+
+/* Modal / Configuração MQTT */
+.modal-config {
+  width: min(480px, calc(100% - 32px));
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: #141d27;
+  color: var(--text);
+  border-radius: 12px;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.8);
+}
+.modal-config::backdrop {
+  background: rgba(8, 12, 18, 0.85);
+  backdrop-filter: blur(6px);
+}
+.modal-config h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.modal-config p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.form-group label {
+  font-size: 11px;
+  color: #c9d7e4;
+  font-weight: 600;
+}
+.form-group input {
+  background: #0e151e;
+  border: 1px solid #3b4b5a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 12px;
+}
+.form-group input:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Modo Competição Banner & Botões */
+.competition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f72585 0%, #7209b7 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.segmented.mode-select {
+  margin-bottom: 12px;
+}
+.segmented.mode-select button.active-comp {
+  background: #501b44;
+  border-color: #f72585;
+  color: #ff94d4;
+}
+
+/* Tabela de Ranking no Lobby e no Resultado */
+.leaderboard-section {
+  margin-top: 36px;
+  background: #111822;
+  border: 1px solid #233140;
+  border-radius: 12px;
+  padding: 22px;
+}
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.leaderboard-header h3 {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.leaderboard-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--muted);
+  border-bottom: 1px solid #273747;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.leaderboard-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1a2532;
+}
+.leaderboard-table tr:hover td {
+  background: #16202c;
+}
+.rank-badge {
+  font-weight: 800;
+  display: inline-block;
+  min-width: 24px;
+}
+.rank-1 { color: #ffd700; font-size: 15px; }
+.rank-2 { color: #c0c0c0; font-size: 14px; }
+.rank-3 { color: #cd7f32; font-size: 14px; }
+.bombom-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #3c1e2f;
+  color: #ff85be;
+  border: 1px solid #862d59;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* Alerta de Bombom no Resultado */
+.bombom-win-card {
+  background: linear-gradient(135deg, #ff2a85 0%, #9b1d62 100%);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 30px rgba(255, 42, 133, 0.4);
+  animation: pulse-bombom 1.8s infinite alternate ease-in-out;
+}
+@keyframes pulse-bombom {
+  from { transform: scale(1); }
+  to { transform: scale(1.02); }
+}
+.bombom-win-icon {
+  font-size: 32px;
+}
+.bombom-win-text strong {
+  display: block;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+.bombom-win-text small {
+  font-size: 11px;
+  opacity: 0.9;
+}

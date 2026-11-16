@@ -1,5 +1,5 @@
-import { AudioTransport } from './audio.js';
-import { DIRECTIONS } from './input.js';
+import { AudioTransport } from '../audio/audio.js';
+import { DIRECTIONS } from '../input/input.js';
 import { createScore, judgeTiming, recordJudgment, accuracy, HIT_WINDOWS } from './scoring.js';
 
 const $ = id => document.getElementById(id);
@@ -163,7 +163,22 @@ export class Game {
   }
   finish() {
     for (const note of this.notes) if (!note.judged) { note.judged = true; recordJudgment(this.score, 'miss'); }
-    const result = { ...this.score, accuracy: accuracy(this.score) || 0, total: this.notes.length };
+    // Identifica maior estágio atingido em modo progressivo
+    let stageReached = 1;
+    if (this.chart.isProgressive) {
+      const judgedNotes = this.notes.filter(n => n.judged && n.stage);
+      if (judgedNotes.length) {
+        stageReached = Math.max(...judgedNotes.map(n => n.stage));
+      }
+    }
+    const result = {
+      ...this.score,
+      accuracy: accuracy(this.score) || 0,
+      total: this.notes.length,
+      stageReached,
+      isProgressive: !!this.chart.isProgressive,
+      wonBombom: this.chart.isProgressive ? (stageReached >= 2 && this.score.points >= 20000) : false
+    };
     this.destroy(); this.onFinish(result);
   }
   destroy() {

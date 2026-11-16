@@ -106,8 +106,8 @@ def main():
         groups.append(f'<g class="frame f{index}"><use href="#trace{source}"/></g>')
     header = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 238 328" fill="none" stroke-width=".85" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="title"><title id="title">Três pessoas dançando, desenhadas em linhas ciano, verde e rosa</title>'
     css = '.frame{visibility:hidden}@media(prefers-reduced-motion:reduce){.frame{animation:none!important}.f0{visibility:visible}}'
-    assets = ROOT / 'assets'
-    assets.mkdir(exist_ok=True)
+    assets = ROOT / 'assets' / 'img'
+    assets.mkdir(parents=True, exist_ok=True)
     definitions = '<defs>' + ''.join(f'<g id="trace{i}">{frame}</g>' for i, frame in enumerate(frames)) + '</defs>'
     (assets / 'dancers.svg').write_text(header + definitions + '<style>' + css + ''.join(styles) + '</style>' + ''.join(groups) + '</svg>', encoding='utf-8')
     (assets / 'dancers-poster.svg').write_text(header + frames[12] + '</svg>', encoding='utf-8')
