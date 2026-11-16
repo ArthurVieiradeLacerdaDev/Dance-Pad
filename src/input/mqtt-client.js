@@ -67,16 +67,23 @@ export class MqttClient extends EventTarget {
     } else if (type === PACKET.PUBLISH) {
       const message = parsePublish(flags, body);
       if (message.qos === 1) this.send(buildPuback(message.packetId));
+      const payloadText = decodeText(message.payload);
+      console.log(`%c[MQTT RECEBIDO] 📥 Tópico: "${message.topic}"`, 'color: #67d8ee; font-weight: bold;', payloadText);
       this.dispatchEvent(new CustomEvent('message', { detail: {
-        topic: message.topic, payload: decodeText(message.payload), retained: message.retain } }));
+        topic: message.topic, payload: payloadText, retained: message.retain } }));
     } else if (type === PACKET.SUBACK) {
       if (parseSuback(body).codes.includes(0x80)) this.setState('error', 'O broker recusou a inscrição no tópico.');
     }
   }
 
   publish(topic, payload, { retain = false } = {}) {
-    if (!this.connected) return false;
-    this.send(buildPublish(topic, typeof payload === 'string' ? payload : JSON.stringify(payload), { retain }));
+    const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    console.log(`%c[MQTT PUBLICADO] 📤 Tópico: "${topic}"`, 'color: #bcf36b; font-weight: bold;', payloadStr);
+    if (!this.connected) {
+      console.warn(`[MQTT] Não foi possível publicar em "${topic}": cliente desconectado.`);
+      return false;
+    }
+    this.send(buildPublish(topic, payloadStr, { retain }));
     return true;
   }
 

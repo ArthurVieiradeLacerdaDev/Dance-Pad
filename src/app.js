@@ -70,12 +70,18 @@ function updateConnectionUI(state, detail = '') {
 }
 
 mqttClient.addEventListener('status', ({ detail }) => {
+  console.log(`%c[MQTT STATUS] 🔄 Estado: ${detail.state.toUpperCase()}`, 'color: #f1ca78; font-weight: bold;', detail.detail);
   updateConnectionUI(detail.state, detail.detail);
 });
 
 mqttClient.addEventListener('message', ({ detail }) => {
   if (detail.topic === mqttConfig.topic) {
-    input.receive(detail.payload);
+    const accepted = input.receive(detail.payload);
+    console.log(`%c[MQTT PASSO] 👟 Recebido no tópico de passos:`, 'color: #ea8fc8; font-weight: bold;', {
+      payload: detail.payload,
+      aceitoPeloJogo: accepted,
+      estadoJogo: game ? game.state : 'sem partida ativa'
+    });
   }
 });
 
