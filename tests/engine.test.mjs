@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzePCM, generateChart, SAMPLE_RATE, LEVELS } from '../src/analysis.js';
-import { synthesize } from '../src/synth.js';
-import { judgeTiming, createScore, recordJudgment, accuracy } from '../src/scoring.js';
+import { analyzePCM, generateChart, SAMPLE_RATE, LEVELS } from '../src/audio/analysis.js';
+import { synthesize } from '../src/audio/synth.js';
+import { judgeTiming, createScore, recordJudgment, accuracy } from '../src/game/scoring.js';
 
 for (const style of ['forro', 'samba', 'funk']) {
   test(`DSP e fases completas: ${style}`, () => {

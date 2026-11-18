@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InputRouter } from '../src/input.js';
+import { InputRouter } from '../src/input/input.js';
 
 test('Entrada comum valida MQTT, retenção, pressionamento e repetição', () => {
   const fakeWindow = new EventTarget();

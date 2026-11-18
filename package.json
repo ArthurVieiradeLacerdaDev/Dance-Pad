@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check src/app.js && node --check src/game.js && node --check src/audio.js && node --check src/analysis.js && node --check src/input.js"
+    "check": "node --check src/app.js && node --check src/game/game.js && node --check src/game/ranking.js && node --check src/audio/audio.js && node --check src/audio/analysis.js && node --check src/input/input.js && node --check src/input/mqtt-client.js && node --check src/input/mqtt-packets.js"
   },
   "engines": { "node": ">=20" }
 }

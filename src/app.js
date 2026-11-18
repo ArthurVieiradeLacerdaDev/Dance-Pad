@@ -1,15 +1,28 @@
-import { tracks } from './catalog.js';
-import { prepareTrack, forgetTrack, getAudioContext } from './audio.js';
-import { generateChart, LEVELS } from './analysis.js';
-import { InputRouter } from './input.js';
-import { Game, formatTime } from './game.js';
+import { tracks } from './data/catalog.js';
+import { prepareTrack, forgetTrack, getAudioContext } from './audio/audio.js';
+import { generateChart, LEVELS } from './audio/analysis.js';
+import { InputRouter } from './input/input.js';
+import { MqttClient } from './input/mqtt-client.js';
+import { Game, formatTime } from './game/game.js';
+import {
+  getSavedPlayerName, savePlayerName, loadLeaderboard, addLeaderboardEntry, clearLeaderboard,
+  COMPETITION_TRACK_ID
+} from './game/ranking.js';
 
 const $ = id => document.getElementById(id);
 let selected = tracks[0], filter = 'demo', difficulty = 'easy', game = null;
+let gameMode = 'competition'; // 'competition' | 'free'
 let prepared = null, chart = null, preview = null, previewGain = null, previewTimer = null, busy = false;
 let selectionVersion = 0, importTarget = null;
 const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const hints = { easy: 'Uma seta por vez, com espaço para respirar.', normal: 'Mais passos, seguindo a pulsação principal.', hard: 'Ataques extras e setas mais próximas. Sem passos simultâneos.' };
+
+const hints = {
+  easy: 'Uma seta por vez, com espaço para respirar.',
+  normal: 'Mais passos, seguindo a pulsação principal.',
+  hard: 'Ataques extras e setas mais próximas. Sem passos simultâneos.',
+  progressive: '3 Fases Progressivas! Fase 1 (Aquecimento) → Fase 2 (🍬 Mediana / Bombom) → Fase 3 (🏆 Drop Insano)'
+};
+
 const descriptions = {
   demo: 'Três instrumentais originais para testar agora. Sem precisar baixar nada.',
   local: 'Os três áudios da equipe, agora com fases geradas automaticamente.',
@@ -22,6 +35,124 @@ function toast(message) {
   clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').hidden = true, 5500);
 }
 
+// -------------------------------------------------------------
+// MQTT CLIENT INTEGRATION (Victor & AJ)
+// -------------------------------------------------------------
+const mqttClient = new MqttClient();
+let mqttConfig = {
+  url: 'wss://broker.hivemq.com:8884/mqtt',
+  topic: 'str/ddr/passos',
+  cmdTopic: 'str/ddr/comando'
+};
+
+try {
+  const savedMqtt = localStorage.getItem('evil-dance-mqtt-config');
+  if (savedMqtt) {
+    const parsed = JSON.parse(savedMqtt);
+    // Se estiver apontando para ws://localhost:9001 (que ainda não existe), ignora e força o HiveMQ público
+    if (parsed.url && parsed.url !== 'ws://localhost:9001') {
+      mqttConfig = { ...mqttConfig, ...parsed };
+    } else {
+      // Atualiza o localStorage para o HiveMQ público para evitar ficar desconectado
+      localStorage.setItem('evil-dance-mqtt-config', JSON.stringify(mqttConfig));
+    }
+  }
+} catch {}
+
+function updateConnectionUI(state, detail = '') {
+  const dot = $('status-dot');
+  const text = $('connection-text');
+  dot.className = `status-dot ${state}`;
+  if (state === 'connected') {
+    text.textContent = 'Tapete MQTT';
+    dot.title = `Conectado ao broker: ${detail}`;
+  } else if (state === 'connecting') {
+    text.textContent = 'Conectando…';
+    dot.title = detail;
+  } else if (state === 'error') {
+    text.textContent = 'Erro MQTT';
+    dot.title = detail;
+  } else {
+    text.textContent = 'Modo teclado';
+    dot.title = 'Desconectado do broker. Usando teclado local.';
+  }
+}
+
+mqttClient.addEventListener('status', ({ detail }) => {
+  console.log(`%c[MQTT STATUS] 🔄 Estado: ${detail.state.toUpperCase()}`, 'color: #f1ca78; font-weight: bold;', detail.detail);
+  updateConnectionUI(detail.state, detail.detail);
+});
+
+mqttClient.addEventListener('message', ({ detail }) => {
+  if (detail.topic === mqttConfig.topic) {
+    const accepted = input.receive(detail.payload);
+    let parsedDir = '';
+    try {
+      const parsed = typeof detail.payload === 'string' ? JSON.parse(detail.payload) : detail.payload;
+      parsedDir = parsed.seta || parsed.dir || parsed.direction || '';
+    } catch {
+      parsedDir = String(detail.payload).trim();
+    }
+    
+    console.log(`%c[MQTT PASSO] 👟 Recebido no tópico de passos:`, 'color: #ea8fc8; font-weight: bold;', {
+      direcao: parsedDir.toUpperCase(),
+      payload: detail.payload,
+      aceitoPeloJogo: accepted,
+      estadoJogo: game ? game.state : 'fora de partida'
+    });
+
+    // Se estiver fora de partida, exibe aviso visual imediato na tela para teste
+    if (!game || game.state !== 'playing') {
+      toast(`👟 Pisada recebida do broker: ${parsedDir.toUpperCase()} (Conexão OK!)`);
+    }
+  }
+});
+
+// Auto-conectar ao carregar se configurado previamente
+setTimeout(() => {
+  try {
+    mqttClient.connect({ url: mqttConfig.url, subscriptions: [mqttConfig.topic] });
+  } catch {}
+}, 500);
+
+// -------------------------------------------------------------
+// LEADERBOARD RENDERING
+// -------------------------------------------------------------
+function renderLeaderboard() {
+  const tbody = $('leaderboard-body');
+  if (!tbody) return;
+  tbody.replaceChildren();
+  const list = loadLeaderboard();
+
+  if (!list.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="7" class="muted" style="text-align:center; padding: 20px;">Nenhuma pontuação registrada ainda. Seja o primeiro a dançar!</td>';
+    tbody.append(tr);
+    return;
+  }
+
+  list.forEach((entry, i) => {
+    const tr = document.createElement('tr');
+    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+    const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+    const bombomHtml = entry.wonBombom ? '<span class="bombom-tag">🍬 Ganhou</span>' : '<span class="muted">—</span>';
+    
+    tr.innerHTML = `
+      <td><span class="rank-badge ${rankClass}">${rankIcon}</span></td>
+      <td><strong>${escapeHTML(entry.name)}</strong></td>
+      <td class="muted">${escapeHTML(entry.trackTitle)} <small>(${entry.mode === 'competition' ? 'Desafio' : 'Livre'})</small></td>
+      <td><strong style="color:var(--lime);">${entry.score.toLocaleString('pt-BR')}</strong></td>
+      <td>${entry.accuracy}%</td>
+      <td>${entry.bestCombo}×</td>
+      <td>${bombomHtml}</td>
+    `;
+    tbody.append(tr);
+  });
+}
+
+// -------------------------------------------------------------
+// TRACKS & SELECTION
+// -------------------------------------------------------------
 function renderTracks() {
   const list = $('song-list'); list.replaceChildren();
   const visible = tracks.filter(track => track.category === filter);
@@ -53,7 +184,7 @@ function renderTracks() {
 
 function stopPreview() {
   clearTimeout(previewTimer);
-  if (preview) { preview.onended = null; try { preview.stop(); } catch { /* Already ended. */ } preview.disconnect(); preview = null; }
+  if (preview) { preview.onended = null; try { preview.stop(); } catch {} preview.disconnect(); preview = null; }
   if (previewGain) { previewGain.disconnect(); previewGain = null; }
   $('preview-button').textContent = 'Ouvir prévia';
 }
@@ -99,11 +230,12 @@ function updateChart() {
   if (!prepared) return;
   const manualBpm = $('manual-bpm').value ? Number($('manual-bpm').value) : undefined;
   const duration = $('session-length').value === 'full' ? prepared.buffer.duration : 60;
-  chart = generateChart(prepared.analysis, { difficulty, duration, bpm: manualBpm });
+  const targetDiff = gameMode === 'competition' ? 'progressive' : difficulty;
+  chart = generateChart(prepared.analysis, { difficulty: targetDiff, duration, bpm: manualBpm });
   $('track-bpm').textContent = Math.round(chart.bpm); $('track-notes').textContent = chart.notes.length;
   $('track-duration').textContent = formatTime(prepared.buffer.duration);
   const confidence = prepared.analysis.confidence;
-  $('analysis-status').textContent = `${chart.notes.length} passos prontos · ${Math.round(chart.bpm)} BPM ${manualBpm ? 'manual' : 'estimado'}${confidence < .3 ? ' · Revise o ritmo no ajuste fino.' : ' · Vamos nessa!'} `;
+  $('analysis-status').textContent = `${chart.notes.length} passos prontos · ${Math.round(chart.bpm)} BPM ${manualBpm ? 'manual' : 'estimado'}${confidence < .3 ? ' · Revise o ritmo no ajuste fino.' : ' · Vamos nessa!'}`;
   drawWaveform();
 }
 
@@ -133,22 +265,37 @@ async function withBusy(action) {
 function showLibrary() {
   if (document.fullscreenElement === document.documentElement) document.exitFullscreen().catch(() => {});
   game?.destroy(); game = null; input.reset(); stopPreview();
+  // Notifica o ESP32 para desligar o metrônomo do buzzer
+  mqttClient.publish(mqttConfig.cmdTopic, { cmd: 'STOP' });
   $('results-dialog').close(); $('library').hidden = false; $('game-screen').hidden = true;
   document.body.classList.remove('playing'); $('pause-button').querySelector('span').textContent = 'Pausar';
   $('start-button').focus();
+  renderLeaderboard();
 }
 
 async function startGame() {
   stopPreview();
+  const playerName = $('player-name-input').value.trim() || 'Dançarino Anônimo';
+  savePlayerName(playerName);
+
   await withBusy(async () => {
     await getAudioContext().resume();
     if (!await ensurePrepared()) return;
     game?.destroy(); $('results-dialog').close(); input.reset();
     $('library').hidden = true; $('game-screen').hidden = false; document.body.classList.add('playing');
     window.scrollTo(0, 0);
-    game = new Game({ buffer: prepared.buffer, analysis: prepared.analysis, chart, track: selected,
+
+    // Notifica o ESP32 com o BPM para a Tarefa Periódica do Buzzer
+    mqttClient.publish(mqttConfig.cmdTopic, { cmd: 'START', bpm: Math.round(chart.bpm) });
+
+    game = new Game({
+      buffer: prepared.buffer, analysis: prepared.analysis, chart, track: selected,
       offset: Number($('timing-offset').value) / 1000, onFinish: showResults,
-      onPause: paused => { input.reset(); $('pause-button').querySelector('span').textContent = paused ? 'Continuar' : 'Pausar'; }
+      onPause: paused => {
+        input.reset();
+        $('pause-button').querySelector('span').textContent = paused ? 'Continuar' : 'Pausar';
+        mqttClient.publish(mqttConfig.cmdTopic, { cmd: paused ? 'PAUSE' : 'RESUME' });
+      }
     });
     try { await game.start(); $('pause-button').focus(); }
     catch (error) { showLibrary(); throw error; }
@@ -157,31 +304,71 @@ async function startGame() {
 
 function showResults(result) {
   input.reset();
+  mqttClient.publish(mqttConfig.cmdTopic, { cmd: 'STOP' });
   const grade = result.accuracy >= 95 ? 'S' : result.accuracy >= 85 ? 'A' : result.accuracy >= 70 ? 'B' : result.accuracy >= 50 ? 'C' : 'D';
   $('result-grade').textContent = grade;
   $('result-title').textContent = result.accuracy >= 70 ? 'Você encontrou seu ritmo!' : 'Cada tentativa é um novo passo.';
-  $('result-song').textContent = `${selected.title} · ${LEVELS[difficulty].label}`;
+  
+  const currentDiffLabel = gameMode === 'competition' ? 'Desafio do Bombom' : LEVELS[difficulty].label;
+  $('result-song').textContent = `${selected.title} · ${currentDiffLabel}`;
   $('result-score').textContent = result.points.toLocaleString('pt-BR');
   $('result-accuracy').textContent = `${result.accuracy.toFixed(1)}%`; $('result-combo').textContent = `${result.bestCombo}×`;
-    const hits = result.perfect + result.good + result.ok;
-    const advice = result.accuracy >= 95 ? 'Ritmo impecável! Que tal subir o nível?' : result.accuracy >= 85 ? 'Ótima partida! Continue emendando acertos.' : result.accuracy >= 70 ? 'Bom ritmo! Tente acertar mais perto do centro do alvo.' : result.accuracy >= 50 ? 'Você está pegando o ritmo. Mais uma tentativa?' : 'Continue praticando em Primeiros passos, uma seta de cada vez.';
-    $('result-summary').textContent = `Você acertou ${hits} de ${result.total} passos. ${advice}`;
+  
+  const hits = result.perfect + result.good + result.ok;
+  const advice = result.accuracy >= 95 ? 'Ritmo impecável!' : result.accuracy >= 85 ? 'Ótima partida!' : result.accuracy >= 70 ? 'Bom ritmo!' : 'Continue praticando!';
+  $('result-summary').textContent = `Você acertou ${hits} de ${result.total} passos. ${advice}`;
   $('result-hits').textContent = `${result.perfect} perfeitos · ${result.good} muito bons · ${result.ok} quase · ${result.miss} perdidos · ${result.wrong} fora do tempo`;
+
+  // Banner do bombom
+  const bombomBanner = $('bombom-winner-banner');
+  if (bombomBanner) {
+    bombomBanner.hidden = !result.wonBombom;
+  }
+
+  // Salva no Ranking Geral
+  const playerName = $('player-name-input').value.trim() || 'Dançarino Anônimo';
+  addLeaderboardEntry({
+    name: playerName,
+    score: result.points,
+    accuracy: result.accuracy,
+    bestCombo: result.bestCombo,
+    stageReached: result.stageReached || 1,
+    wonBombom: result.wonBombom,
+    mode: gameMode,
+    trackTitle: selected.title
+  });
+
+  renderLeaderboard();
   $('results-dialog').showModal();
 }
 
-const input = new InputRouter({ enabled: () => !!game && ['playing', 'paused'].includes(game.state),
+// -------------------------------------------------------------
+// INPUT & ROUTING
+// -------------------------------------------------------------
+const input = new InputRouter({
+  enabled: () => !!game && ['playing', 'paused'].includes(game.state),
   pause: () => togglePause(), exit: () => showLibrary()
 });
 input.addEventListener('press', ({ detail }) => game?.press(detail.direction));
 input.addEventListener('release', ({ detail }) => game?.release(detail.direction));
+
 async function togglePause() {
   try { await game?.togglePause(); } catch (error) { toast(`Não consegui retomar o áudio: ${error.message}`); }
 }
-// Public adapter for an eventual MQTT client. It deliberately does not connect to a broker.
-window.dancePad = Object.freeze({ receive: payload => input.receive(payload), get mode() { return 'keyboard'; } });
-window.addEventListener('blur', () => game?.pause());
-document.addEventListener('visibilitychange', () => { if (document.hidden) { game?.pause(); stopPreview(); } });
+
+// Global hook para compatibilidade e debug
+window.dancePad = Object.freeze({
+  receive: payload => input.receive(payload),
+  get mode() { return mqttClient.connected ? 'mqtt' : 'keyboard'; },
+  mqtt: mqttClient
+});
+
+// Em jogos de tapete / testes com broker externo, não pausar automaticamente ao perder o foco (blur)
+// O jogador pode estar no tapete físico ou testando em outra janela/aba
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopPreview();
+});
+
 const pointerDirections = new Map();
 $('receptors').addEventListener('pointerdown', event => {
   const pad = event.target.closest('[data-direction]'); if (!pad) return;
@@ -194,8 +381,97 @@ function releasePointer(event) {
   if (direction) input.release(direction, `pointer-${event.pointerId}`);
   pointerDirections.delete(event.pointerId);
 }
+
+// -------------------------------------------------------------
+// EVENT LISTENERS & SETUP
+// -------------------------------------------------------------
 $('start-button').addEventListener('click', startGame);
 $('leave-game').addEventListener('click', showLibrary);
+
+// Modo de Jogo: Competição vs Livre
+$('mode-competition').addEventListener('click', () => {
+  gameMode = 'competition';
+  $('mode-competition').classList.add('active-comp');
+  $('mode-competition').setAttribute('aria-pressed', 'true');
+  $('mode-free').classList.remove('active-comp');
+  $('mode-free').setAttribute('aria-pressed', 'false');
+  $('difficulty-wrapper').style.display = 'none';
+  $('competition-hint').style.display = 'flex';
+  
+  // Seleciona automaticamente a faixa de competição
+  const compTrack = tracks.find(t => t.id === COMPETITION_TRACK_ID);
+  if (compTrack && selected.id !== compTrack.id) selectTrack(compTrack);
+  else updateChart();
+});
+
+$('mode-free').addEventListener('click', () => {
+  gameMode = 'free';
+  $('mode-free').classList.add('active-comp');
+  $('mode-free').setAttribute('aria-pressed', 'true');
+  $('mode-competition').classList.remove('active-comp');
+  $('mode-competition').setAttribute('aria-pressed', 'false');
+  $('difficulty-wrapper').style.display = 'block';
+  $('competition-hint').style.display = 'none';
+  updateChart();
+});
+
+// Nome do jogador salvo
+$('player-name-input').value = getSavedPlayerName();
+$('player-name-input').addEventListener('change', e => savePlayerName(e.target.value));
+
+// Modal MQTT
+function openMqttModal() {
+  $('mqtt-url-input').value = mqttConfig.url;
+  $('mqtt-topic-input').value = mqttConfig.topic;
+  $('mqtt-cmd-topic-input').value = mqttConfig.cmdTopic;
+  const modal = $('mqtt-modal');
+  try {
+    if (!modal.open) modal.showModal();
+  } catch {
+    modal.setAttribute('open', '');
+  }
+}
+
+$('mqtt-settings-btn').addEventListener('click', openMqttModal);
+$('connection-indicator').addEventListener('click', openMqttModal);
+
+$('mqtt-preset-hivemq')?.addEventListener('click', () => {
+  $('mqtt-url-input').value = 'wss://broker.hivemq.com:8884/mqtt';
+});
+$('mqtt-preset-local')?.addEventListener('click', () => {
+  $('mqtt-url-input').value = 'ws://localhost:9001';
+});
+
+$('mqtt-close-btn').addEventListener('click', () => $('mqtt-modal').close());
+$('mqtt-modal').addEventListener('click', event => {
+  if (event.target === $('mqtt-modal')) $('mqtt-modal').close();
+});
+
+$('mqtt-connect-btn').addEventListener('click', () => {
+  mqttConfig.url = $('mqtt-url-input').value.trim() || 'ws://localhost:9001';
+  mqttConfig.topic = $('mqtt-topic-input').value.trim() || 'str/ddr/passos';
+  mqttConfig.cmdTopic = $('mqtt-cmd-topic-input').value.trim() || 'str/ddr/comando';
+  try { localStorage.setItem('evil-dance-mqtt-config', JSON.stringify(mqttConfig)); } catch {}
+  mqttClient.connect({ url: mqttConfig.url, subscriptions: [mqttConfig.topic] });
+  $('mqtt-modal').close();
+  toast('Conectando ao broker MQTT...');
+});
+
+$('mqtt-disconnect-btn').addEventListener('click', () => {
+  mqttClient.disconnect();
+  $('mqtt-modal').close();
+  toast('MQTT desconectado.');
+});
+
+// Limpar Leaderboard com confirmação
+$('clear-leaderboard-btn')?.addEventListener('click', () => {
+  if (confirm('Tem certeza que deseja zerar o placar da feira?')) {
+    clearLeaderboard();
+    renderLeaderboard();
+    toast('Placar zerado.');
+  }
+});
+
 const fullscreenButton = $('fullscreen-button');
 function updateFullscreenButton() {
   const active = !!document.fullscreenElement;
@@ -213,9 +489,13 @@ fullscreenButton.addEventListener('click', async () => {
   } catch { toast('Não foi possível ativar a tela cheia neste navegador.'); }
 });
 document.addEventListener('fullscreenchange', updateFullscreenButton);
-$('pause-button').addEventListener('click', togglePause); $('resume-button').addEventListener('click', togglePause);
-$('result-back').addEventListener('click', showLibrary); $('replay-button').addEventListener('click', startGame);
+
+$('pause-button').addEventListener('click', togglePause);
+$('resume-button').addEventListener('click', togglePause);
+$('result-back').addEventListener('click', showLibrary);
+$('replay-button').addEventListener('click', startGame);
 $('results-dialog').addEventListener('cancel', event => { event.preventDefault(); showLibrary(); });
+
 $('preview-button').addEventListener('click', () => {
   if (preview) { stopPreview(); return; }
   withBusy(async () => {
@@ -227,36 +507,50 @@ $('preview-button').addEventListener('click', () => {
     $('preview-button').textContent = 'Parar prévia'; previewTimer = setTimeout(stopPreview, 12500);
   });
 });
+
 $('export-button').addEventListener('click', () => withBusy(async () => {
   if (!await ensurePrepared()) return;
   const { analysis } = prepared;
-  const exportData = { ...chart, track: { title: selected.title, artist: selected.artist, src: selected.src || null, filename: selected.file?.name || null },
+  const exportData = {
+    ...chart, track: { title: selected.title, artist: selected.artist, src: selected.src || null, filename: selected.file?.name || null },
     timeMeaning: 'Seconds from audio start when the note reaches the target, before calibration offset.',
-    analysis: { version: analysis.version, estimatedBpm: analysis.bpm, confidence: analysis.confidence,
+    analysis: {
+      version: analysis.version, estimatedBpm: analysis.bpm, confidence: analysis.confidence,
       onsetCount: analysis.onsets.length, bands: { low: '43–200 Hz', mid: '200–2000 Hz', high: '2000–5512 Hz' },
-      normalizedFluxShares: analysis.bands, onsets: analysis.onsets }, calibrationOffsetMs: Number($('timing-offset').value) };
+      normalizedFluxShares: analysis.bands, onsets: analysis.onsets
+    }, calibrationOffsetMs: Number($('timing-offset').value)
+  };
   const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url;
-  link.download = `${selected.id}-${difficulty}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  link.download = `${selected.id}-${gameMode === 'competition' ? 'desafio' : difficulty}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast('Fase exportada com os passos e os dados da análise.');
 }));
+
 document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
   if (busy) return;
   filter = button.dataset.filter;
   document.querySelectorAll('[data-filter]').forEach(item => { const active = item === button; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); });
   renderTracks();
 }));
+
 document.querySelectorAll('[data-difficulty]').forEach(button => button.addEventListener('click', () => {
   difficulty = button.dataset.difficulty;
   document.querySelectorAll('[data-difficulty]').forEach(item => { const active = item === button; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); });
   $('difficulty-hint').textContent = hints[difficulty];
   try { updateChart(); } catch (error) { toast(error.message); }
 }));
+
 $('session-length').addEventListener('change', () => { try { updateChart(); } catch (error) { toast(error.message); } });
 $('manual-bpm').addEventListener('change', () => { try { updateChart(); } catch (error) { toast(error.message); } });
-let savedOffset = 0; try { savedOffset = Math.min(250, Math.max(-250, Number(localStorage.getItem('evil-dance-offset')) || 0)); } catch { /* Storage may be disabled. */ }
+
+let savedOffset = 0;
+try { savedOffset = Math.min(250, Math.max(-250, Number(localStorage.getItem('evil-dance-offset')) || 0)); } catch {}
 $('timing-offset').value = savedOffset; $('offset-value').textContent = `${savedOffset} ms`;
-$('timing-offset').addEventListener('input', event => { $('offset-value').textContent = `${event.target.value} ms`; try { localStorage.setItem('evil-dance-offset', event.target.value); } catch { /* Optional preference. */ } });
+$('timing-offset').addEventListener('input', event => {
+  $('offset-value').textContent = `${event.target.value} ms`;
+  try { localStorage.setItem('evil-dance-offset', event.target.value); } catch {}
+});
+
 $('import-button').addEventListener('click', () => { importTarget = null; $('audio-import').click(); });
 $('audio-import').addEventListener('change', async event => {
   const file = event.target.files[0]; event.target.value = ''; if (!file) return;
@@ -271,13 +565,22 @@ $('audio-import').addEventListener('change', async event => {
   await withBusy(async () => { if (await ensurePrepared()) toast('Áudio carregado. Sua fase está pronta para jogar.'); });
 });
 $('audio-import').addEventListener('cancel', () => { importTarget = null; });
+
 $('nav-how').addEventListener('click', () => { if (game) showLibrary(); $('how-to').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); });
 $('nav-library').addEventListener('click', () => { if (game) showLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 window.addEventListener('resize', () => drawWaveform());
-renderTracks(); drawWaveform();
-// A quiet visual Easter egg: the source recording only plays while hovered.
+
+// Inicialização
+$('difficulty-wrapper').style.display = 'none'; // Inicia no Modo Competição
+$('competition-hint').style.display = 'flex';
+renderTracks();
+drawWaveform();
+renderLeaderboard();
+
+// Easter egg do vídeo
 document.querySelectorAll('.dance-easter-egg').forEach(container => {
   const video = container.querySelector('video');
+  if (!video) return;
   container.addEventListener('pointerenter', async event => {
     if (event.pointerType === 'touch') return;
     try {
@@ -291,9 +594,11 @@ document.querySelectorAll('.dance-easter-egg').forEach(container => {
     container.classList.remove('show-original'); video.pause();
   });
 });
+
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) document.querySelectorAll('.dance-easter-egg').forEach(container => {
-    container.classList.remove('show-original'); container.querySelector('video').pause();
+    container.classList.remove('show-original'); container.querySelector('video')?.pause();
   });
 });
+
 if (location.protocol === 'file:') toast('Abra com npm start ou Live Server para carregar o áudio e gerar as fases.');

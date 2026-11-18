@@ -144,7 +144,8 @@ export function analyzePCM(samples, sampleRate = SAMPLE_RATE) {
 export const LEVELS = {
   easy: { label: 'Primeiros passos', stride: 2, minGap: .65, travel: 2.65 },
   normal: { label: 'No ritmo', stride: 1, minGap: .36, travel: 2.25 },
-  hard: { label: 'Desafio', stride: .5, minGap: .25, travel: 1.9 }
+  hard: { label: 'Desafio', stride: .5, minGap: .25, travel: 1.9 },
+  progressive: { label: 'Modo Competição (Progressivo 🍬)', stride: 1, minGap: .36, travel: 2.25 }
 };
 
 export function generateChart(analysis, { difficulty = 'easy', duration = 60, bpm: manualBpm } = {}) {
@@ -157,6 +158,51 @@ export function generateChart(analysis, { difficulty = 'easy', duration = 60, bp
   const period = 60 / bpm, limit = Math.min(duration, analysis.duration);
   const notes = [];
   let onsetIndex = 0;
+
+  if (difficulty === 'progressive') {
+    // Modo Competição: 3 fases dentro da partida (ex: 75s ou duration total)
+    // Fase 1 (0 a 33%): stride 2 (passos espaçados)
+    // Fase 2 (33% a 66%): stride 1 (ritmo principal - META DO BOMBOM 🍬)
+    // Fase 3 (66% a 100%): stride 0.5 (alta densidade - DISPUTA TOP 1 🏆)
+    const tFase2 = limit * 0.33;
+    const tFase3 = limit * 0.66;
+
+    for (let gridTime = phase; gridTime < limit - .35; ) {
+      const currentStride = gridTime < tFase2 ? 2 : gridTime < tFase3 ? 1 : 0.5;
+      const currentMinGap = gridTime < tFase2 ? 0.60 : gridTime < tFase3 ? 0.35 : 0.22;
+      const stage = gridTime < tFase2 ? 1 : gridTime < tFase3 ? 2 : 3;
+
+      if (gridTime >= .75) {
+        const frame = Math.round(gridTime / analysis.frameTime);
+        if ((analysis.energies[frame] || 0) >= analysis.maxEnergy * .035) {
+          while (onsetIndex < analysis.onsets.length - 1 && analysis.onsets[onsetIndex + 1].time < gridTime - .12) onsetIndex++;
+          let nearest = null;
+          for (let j = Math.max(0, onsetIndex - 1); j < Math.min(analysis.onsets.length, onsetIndex + 4); j++) {
+            const candidate = analysis.onsets[j];
+            if (Math.abs(candidate.time - gridTime) <= .1 && (!nearest || Math.abs(candidate.time - gridTime) < Math.abs(nearest.time - gridTime))) nearest = candidate;
+          }
+
+          let skip = false;
+          if (stage === 3 && (!nearest || nearest.strength < .25)) skip = false;
+
+          const time = nearest ? nearest.time : gridTime;
+          if (time >= .6 && time <= limit - .3 && (!notes.length || time - notes.at(-1).time >= currentMinGap)) {
+            const bands = nearest?.bands || [1, .5, .25];
+            const dominant = bands.indexOf(Math.max(...bands));
+            const pools = [['UP', 'DOWN'], ['LEFT', 'RIGHT'], ['RIGHT', 'UP']];
+            let direction = pools[dominant][notes.length % 2];
+            if (notes.at(-1)?.dir === direction) direction = ['LEFT', 'UP', 'DOWN', 'RIGHT'][(notes.length + dominant) % 4];
+            if (notes.at(-1)?.dir === direction) direction = direction === 'LEFT' ? 'RIGHT' : 'LEFT';
+            notes.push({ time: Math.round(time * 1000) / 1000, dir: direction, band: ['low', 'mid', 'high'][dominant], stage });
+          }
+        }
+      }
+      gridTime += period * currentStride;
+    }
+
+    if (!notes.length) throw new Error('Não foi possível gerar passos neste trecho. Tente música completa ou outra faixa.');
+    return { version: 1, difficulty, bpm, phase, duration: limit, travel: level.travel, notes, isProgressive: true };
+  }
   for (let beat = 0, gridTime = phase; gridTime < limit - .35; beat++, gridTime = phase + beat * period * level.stride) {
     if (gridTime < .75) continue;
     const frame = Math.round(gridTime / analysis.frameTime);

@@ -37,7 +37,7 @@ export class InputRouter extends EventTarget {
     }
     if (typeof value === 'string') value = { dir: value.toUpperCase() };
     if (!value || typeof value !== 'object') return false;
-    const direction = String(value.dir || value.direction || '').toUpperCase();
+    const direction = String(value.dir || value.direction || value.seta || '').toUpperCase();
     if (!DIRECTIONS.includes(direction)) return false;
     // A retained broker message must never count as a new physical step.
     if (value.retained === true) return false;
