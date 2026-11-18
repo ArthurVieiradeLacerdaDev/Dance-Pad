@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evil Dance · Guia de Integração e Calibração do Tapete (STR / UFC)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-lime: #bcf36b;
+      --accent-cyan: #58a6ff;
+      --accent-pink: #f778ba;
+      --accent-yellow: #f1ca78;
+      --code-bg: #0a0d12;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 30px 20px 60px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(188, 243, 107, 0.15);
+      color: var(--accent-lime);
+      border: 1px solid rgba(188, 243, 107, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    h1 span { color: var(--accent-lime); }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    .nav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .nav-pills a {
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .nav-pills a:hover {
+      border-color: var(--accent-lime);
+      color: var(--accent-lime);
+    }
+    section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 30px;
+    }
+    h2 {
+      font-size: 1.4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 22px 0 10px;
+      color: var(--accent-yellow);
+    }
+    p, li { font-size: 14px; color: #c9d1d9; }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 6px; }
+    strong { color: #fff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      font-weight: 700;
+      color: var(--text);
+    }
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .code-container {
+      position: relative;
+      margin: 14px 0 20px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: Consolas, Monaco, "Andale Mono", monospace;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #79c0ff;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #21262d;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      color: #fff;
+      background: #30363d;
+      border-color: var(--accent-lime);
+    }
+    .callout {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 13.5px;
+      border-left: 4px solid;
+    }
+    .callout-info {
+      background: rgba(88, 166, 255, 0.08);
+      border-color: var(--accent-cyan);
+      color: #a5d6ff;
+    }
+    .callout-success {
+      background: rgba(188, 243, 107, 0.08);
+      border-color: var(--accent-lime);
+      color: #d2f99a;
+    }
+    .callout-warn {
+      background: rgba(241, 202, 120, 0.08);
+      border-color: var(--accent-yellow);
+      color: #f7e0a3;
+    }
+    .diagram-box {
+      background: #0a0d12;
+      border: 1px dashed var(--card-border);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      color: #a5d6ff;
+      white-space: pre;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge">UFC · Engenharia de Computação · STR</div>
+      <h1>Evil Dance <span>·</span> Guia Definitivo do Tapete</h1>
+      <p class="subtitle">Manual completo de migração para o tapete físico de papelão, fiação, código ESP32 (FreeRTOS), broker Mosquitto e calibração fina.</p>
+      
+      <div class="nav-pills">
+        <a href="#secao-fios">1. Fiação & Pinagem</a>
+        <a href="#secao-esp32">2. Código do ESP32</a>
+        <a href="#secao-mosquitto">3. Broker Mosquitto</a>
+        <a href="#secao-web">4. Conexão Web</a>
+        <a href="#secao-calibracao">5. Calibração (Offset)</a>
+        <a href="#secao-teoria">6. Teoria p/ o Professor</a>
+      </div>
+    </header>
+
+    <!-- SEÇÃO 1: FIAÇÃO -->
+    <section id="secao-fios">
+      <h2>🔌 1. Montagem Física das Setas (Papel Alumínio $\rightarrow$ ESP32)</h2>
+      
+      <p>Cada uma das 4 setas é um botão de chão (placas de papelão revestidas com papel alumínio, separadas por tirinhas de EVA nas bordas):</p>
+      <ul>
+        <li><strong>Placa de Baixo:</strong> Ligada ao <strong>GND comum</strong> (Terra compartilhado por todas as setas).</li>
+        <li><strong>Placa de Cima:</strong> Ligada ao <strong>pino de sinal GPIO</strong> correspondente no ESP32.</li>
+        <li><strong>Não precisa de resistor externo:</strong> O ESP32 utiliza resistor interno de <code>INPUT_PULLUP</code>.</li>
+      </ul>
+
+      <div class="diagram-box">
+  [ ESP32 ]
+  ┌──────────────────────────────────────────────────────────────┐
+  │ D15 (GPIO 15) ────► 🟠 Fio Laranja        ──► Seta CIMA (UP)  │
+  │ D18 (GPIO 18) ────► 🟢 Fio Verde          ──► Seta BAIXO (DW) │
+  │ D4  (GPIO 4)  ────► ⚪🟠 Branco-Laranja    ──► Seta DIREITA(RT)│
+  │ D5  (GPIO 5)  ────► 🔵 Fio Azul           ──► Seta ESQUERDA(LT│
+  │ GND           ────► 🟤 Fio Marrom Comum   ──► Placas de Baixo │
+  └──────────────────────────────────────────────────────────────┘</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Direção</th>
+            <th>Pino ESP32</th>
+            <th>Cor do Fio (Cabo de Rede)</th>
+            <th>Ação ao Pisar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>⬆️ <strong>CIMA (UP)</strong></td>
+            <td><code>D15</code></td>
+            <td>🟠 Laranja</td>
+            <td>Encosta no GND e dispara interrupção em D15</td>
+          </tr>
+          <tr>
+            <td>⬇️ <strong>BAIXO (DOWN)</strong></td>
+            <td><code>D18</code></td>
+            <td>🟢 Verde</td>
+            <td>Encosta no GND e dispara interrupção em D18</td>
+          </tr>
+          <tr>
+            <td>➡️ <strong>DIREITA (RIGHT)</strong></td>
+            <td><code>D4</code></td>
+            <td>⚪🟠 Branco-Laranja</td>
+            <td>Encosta no GND e dispara interrupção em D4</td>
+          </tr>
+          <tr>
+            <td>⬅️ <strong>ESQUERDA (LEFT)</strong></td>
+            <td><code>D5</code></td>
+            <td>🔵 Azul</td>
+            <td>Encosta no GND e dispara interrupção em D5</td>
+          </tr>
+          <tr>
+            <td>⏚ <strong>TERRA COMUM</strong></td>
+            <td><code>GND</code></td>
+            <td>🟤 Marrom</td>
+            <td>Interliga a placa inferior de <strong>todas as 4 setas</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SEÇÃO 2: CÓDIGO ESP32 -->
+    <section id="secao-esp32">
+      <h2>💻 2. Código Oficial do ESP32 (FreeRTOS + MQTT)</h2>
+      <p>Grave este código no ESP32 usando o <strong>Arduino IDE</strong> com a biblioteca <code>PubSubClient</code> instalada.</p>
+      
+      <div class="callout callout-warn">
+        <strong>O que você precisa alterar no código abaixo:</strong><br>
+        1. <code>WIFI_SSID</code> e <code>WIFI_PASSWORD</code> com o nome e senha do seu Wi-Fi/Roteador.<br>
+        2. <code>MQTT_BROKER</code> com o IP do computador que está rodando o Mosquitto (ex: <code>"192.168.3.55"</code>), ou use <code>"broker.hivemq.com"</code> para testes via internet.
+      </div>
+
+      <div class="code-container">
+        <button class="copy-btn" onclick="copyCode('code-esp32')">Copiar Código</button>
+        <pre id="code-esp32"><code>#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+// =================================================================
+// 1. CONFIGURAÇÕES DE REDE E BROKER (ALTERE AQUI!)
+// =================================================================
+const char* WIFI_SSID     = "NOME_DO_SEU_WIFI";
+const char* WIFI_PASSWORD = "SENHA_DO_SEU_WIFI";
+
+// IP do notebook rodando o Mosquitto (ou "broker.hivemq.com")
+const char* MQTT_BROKER   = "192.168.3.55"; 
+const int   MQTT_PORT     = 1883;
+
+// Tópicos oficiais do jogo
+const char* TOPIC_PASSOS  = "str/ddr/artur/passos";
+const char* TOPIC_LEGACY  = "str/ddr/passos";
+
+// Pinagem Oficial:
+#define PIN_UP     15  // D15 -> Cima
+#define PIN_DOWN   18  // D18 -> Baixo
+#define PIN_RIGHT   4  // D4  -> Direita
+#define PIN_LEFT    5  // D5  -> Esquerda
+
+// =================================================================
+// 2. FREERTOS E FILAS (REGRAS DE SOFTWARE EM TEMPO REAL)
+// =================================================================
+enum DirecaoSeta { SETA_UP = 0, SETA_DOWN = 1, SETA_LEFT = 2, SETA_RIGHT = 3 };
+
+typedef struct {
+  DirecaoSeta direcao;
+  uint32_t    timestamp;
+} EventoPasso_t;
+
+QueueHandle_t filaPassos = NULL;
+volatile uint32_t ultimoClique[4] = {0, 0, 0, 0};
+const char* NOMES_SETAS[] = { "UP", "DOWN", "LEFT", "RIGHT" };
+
+// Debounce por software na ISR (120ms para eliminar trepidação do papel alumínio)
+void IRAM_ATTR isrGenerica(DirecaoSeta dir) {
+  uint32_t agora = xTaskGetTickCountFromISR() * portTICK_PERIOD_MS;
+  if (agora - ultimoClique[dir] > 120) {
+    ultimoClique[dir] = agora;
+    EventoPasso_t ev = { dir, agora };
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(filaPassos, &ev, &xHigherPriorityTaskWoken);
+    if (xHigherPriorityTaskWoken) {
+      portYIELD_FROM_ISR();
+    }
+  }
+}
+
+void IRAM_ATTR isrUp()    { isrGenerica(SETA_UP); }
+void IRAM_ATTR isrDown()  { isrGenerica(SETA_DOWN); }
+void IRAM_ATTR isrLeft()  { isrGenerica(SETA_LEFT); }
+void IRAM_ATTR isrRight() { isrGenerica(SETA_RIGHT); }
+
+// =================================================================
+// 3. TAREFA MQTT NO FREERTOS (FUGA DO POLLING)
+// =================================================================
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+void reconectarMQTT() {
+  while (!mqttClient.connected()) {
+    String clientId = "ESP32-DancePad-" + String(random(0xffff), HEX);
+    Serial.print("Conectando ao Broker MQTT...");
+    if (mqttClient.connect(clientId.c_str())) {
+      Serial.println(" CONECTADO!");
+    } else {
+      Serial.print(" Falhou, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(". Tentando novamente em 1.5s...");
+      vTaskDelay(pdMS_TO_TICKS(1500));
+    }
+  }
+}
+
+void TaskMQTT(void* pvParameters) {
+  EventoPasso_t evento;
+  char payload[64];
+
+  for (;;) {
+    // Bloqueia consumindo 0% de CPU até o jogador pisar na seta
+    if (xQueueReceive(filaPassos, &evento, portMAX_DELAY) == pdTRUE) {
+      if (!mqttClient.connected()) {
+        reconectarMQTT();
+      }
+      mqttClient.loop();
+
+      snprintf(payload, sizeof(payload), "{\"seta\":\"%s\",\"ts\":%lu}",
+               NOMES_SETAS[evento.direcao], evento.timestamp);
+
+      Serial.print("Pisada no tapete! Enviando: ");
+      Serial.println(payload);
+
+      mqttClient.publish(TOPIC_PASSOS, payload);
+      mqttClient.publish(TOPIC_LEGACY, payload);
+    }
+  }
+}
+
+// =================================================================
+// 4. SETUP E INICIALIZAÇÃO
+// =================================================================
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+  Serial.println("\n=== Evil Dance ESP32 Iniciando ===");
+
+  pinMode(PIN_UP, INPUT_PULLUP);
+  pinMode(PIN_DOWN, INPUT_PULLUP);
+  pinMode(PIN_LEFT, INPUT_PULLUP);
+  pinMode(PIN_RIGHT, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(PIN_UP), isrUp, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_DOWN), isrDown, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_LEFT), isrLeft, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_RIGHT), isrRight, FALLING);
+
+  filaPassos = xQueueCreate(16, sizeof(EventoPasso_t));
+
+  Serial.print("Conectando ao Wi-Fi: ");
+  Serial.println(WIFI_SSID);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi Conectado! IP do ESP32: " + WiFi.localIP().toString());
+
+  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+
+  xTaskCreatePinnedToCore(
+    TaskMQTT,
+    "TaskMQTT",
+    4096,
+    NULL,
+    2,
+    NULL,
+    1
+  );
+
+  Serial.println("Pronto! Pise nas setas...");
+}
+
+void loop() {
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3: MOSQUITTO LOCAL -->
+    <section id="secao-mosquitto">
+      <h2>📡 3. Configuração do Broker Mosquitto Local</h2>
+      <p>O Mosquitto deve abrir duas portas: <strong>1883</strong> (TCP para o ESP32) e <strong>9001</strong> (WebSockets para a interface Web).</p>
+
+      <h3>1. Arquivo <code>str_mosquitto.conf</code></h3>
+      <div class="code-container">
+        <button class="copy-btn" onclick="copyCode('code-conf')">Copiar Config</button>
+        <pre id="code-conf"><code>allow_anonymous true
+
+# Porta para o ESP32 conectar via Wi-Fi (MQTT TCP padrão)
+listener 1883 0.0.0.0
+protocol mqtt
+
+# Porta para o Site Web conectar via Navegador (WebSockets)
+listener 9001 0.0.0.0
+protocol websockets</code></pre>
+      </div>
+
+      <h3>2. Como Iniciar no Terminal (PowerShell no Windows)</h3>
+      <ol>
+        <li>Se o serviço do Windows estiver ativo, pare-o no <strong>Gerenciador de Tarefas</strong> (Ctrl+Shift+Esc) $\rightarrow$ aba <strong>Serviços</strong> $\rightarrow$ botão direito em <code>mosquitto</code> $\rightarrow$ <strong>Parar</strong>.</li>
+        <li>No terminal, execute o comando com o operador <code>&</code>:
+          <div class="code-container">
+            <button class="copy-btn" onclick="copyCode('code-run')">Copiar Comando</button>
+            <pre id="code-run"><code>& "C:\Program Files\mosquitto\mosquitto.exe" -c str_mosquitto.conf -v</code></pre>
+          </div>
+        </li>
+        <li>O terminal exibirá:
+          <pre><code>Opening ipv4 listen socket on port 1883.
+Opening ipv4 listen socket on port 9001.
+mosquitto version 2.1.2 running</code></pre>
+        </li>
+      </ol>
+    </section>
+
+    <!-- SEÇÃO 4: CONEXÃO WEB -->
+    <section id="secao-web">
+      <h2>🕹️ 4. Conectando a Interface Web (Evil Dance)</h2>
+      <ol>
+        <li>Inicie o jogo no navegador acessando <code>http://localhost:4173/</code> (ou pelo servidor local via <code>npm start</code>).</li>
+        <li>No canto superior direito da tela, clique no botão <strong><code>MQTT</code></strong>.</li>
+        <li>Clique no botão de atalho <strong><code>💻 Mosquitto Local (WS)</code></strong>:
+          <ul>
+            <li>URL: <code>ws://localhost:9001</code> (ou <code>ws://IP_DO_NOTE:9001</code> se outro PC for usar a tela).</li>
+            <li>Tópico: <code>str/ddr/artur/passos</code> (ou <code>str/ddr/passos</code>).</li>
+          </ul>
+        </li>
+        <li>Clique em <strong>Conectar</strong>. O indicador no topo mudará para verde: <strong><code>Tapete MQTT</code></strong>!</li>
+        <li><strong>Teste de Hardware sem iniciar a música:</strong> Se alguém pisar no tapete agora, a tela exibe imediatamente um aviso: <code>👟 Pisada recebida do broker: UP (Conexão OK!)</code>.</li>
+      </ol>
+    </section>
+
+    <!-- SEÇÃO 5: CALIBRAÇÃO DE OFFSET -->
+    <section id="secao-calibracao">
+      <h2>🎯 5. Guia de Calibração de Latência (Offset / Freshness)</h2>
+      <p>O tapete de papelão, a compressão mecânica do EVA e o Wi-Fi têm um tempo de resposta de 20 ms a 70 ms. Para que as setas registrem <strong>PERFECT</strong> exatamente quando o pé encosta:</p>
+
+      <div class="callout callout-success">
+        <strong>Como Calibrar no Jogo:</strong><br>
+        1. Na tela de seleção de músicas, abra o menu sanfona <strong>"Ajustar sincronia e ritmo"</strong> (abaixo do botão verde <em>Vamos Jogar</em>).<br>
+        2. Localize o controle deslizante <strong>Compensação (Offset em ms)</strong>:<br>
+        &nbsp;&nbsp;• <strong>Se a pessoa pisa no tempo certo, mas o jogo diz "ATRASOU":</strong> Aumente o valor para <strong>positivo</strong> (ex: <code>+40 ms</code> a <code>+80 ms</code>).<br>
+        &nbsp;&nbsp;• <strong>Se o jogo diz "ADIANTOU":</strong> Reduza para <strong>negativo</strong> (ex: <code>-30 ms</code>).<br>
+        3. O valor fica gravado automaticamente no navegador para todas as partidas seguintes!
+      </div>
+    </section>
+
+    <!-- SEÇÃO 6: TEORIA STR -->
+    <section id="secao-teoria">
+      <h2>🧠 6. Colinha Teórica de STR (Perguntas do Prof. Evilasio)</h2>
+      
+      <div class="callout callout-info">
+        <strong>1. Por que não usar polling no ESP32?</strong><br>
+        Porque polling consome 100% de CPU verificando pinos. Usamos <strong>Interrupções de Hardware (ISRs)</strong> tratando as pisadas como tarefas esporádicas. A tarefa consumidora no FreeRTOS fica bloqueada em <code>xQueueReceive</code> (0% CPU) até que ocorra um evento físico.
+      </div>
+
+      <div class="callout callout-info">
+        <strong>2. Como é garantida a integridade entre tarefas sem variáveis globais?</strong><br>
+        Seguindo a regra de ouro das Aulas 11 a 13 do professor, usamos <strong>Filas do FreeRTOS (Queues)</strong> via <code>xQueueSendFromISR</code> e <code>xQueueReceive</code>. Não há variáveis globais compartilhadas desprotegidas e nenhum Mutex é chamado dentro da ISR.
+      </div>
+
+      <div class="callout callout-info">
+        <strong>3. Qual o papel do Broker MQTT no projeto?</strong><br>
+        Ele implementa o padrão <strong>Publish/Subscribe</strong> garantindo <strong>desacoplamento espacial</strong> (a interface Web não sabe o que é um ESP32 nem onde ele está) e <strong>desacoplamento temporal</strong>.
+      </div>
+
+      <div class="callout callout-info">
+        <strong>4. O que é o Offset à luz da teoria de STR?</strong><br>
+        Trata-se da garantia da <strong>Atualidade dos Dados (Freshness)</strong> e avaliação de <strong>Deadlines Relativos (Firm Real-Time)</strong>: se o dado da pisada chega fora da janela de julgamento, seu valor de pontuação cai a zero. O slider de offset compensa o atraso mecânico e de transporte.
+      </div>
+    </section>
+
+    <footer>
+      Evil Dance · Projeto Prático de Software em Tempo Real (UFC) · Prof. Evilasio Costa Junior
+    </footer>
+  </div>
+
+  <script>
+    function copyCode(elementId) {
+      const code = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Copiado! ✓";
+        btn.style.borderColor = "var(--accent-lime)";
+        btn.style.color = "var(--accent-lime)";
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.borderColor = "";
+          btn.style.color = "";
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
