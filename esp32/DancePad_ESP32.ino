@@ -41,25 +41,31 @@ volatile uint32_t ultimoClique[4] = {0, 0, 0, 0};
 const char* NOMES_SETAS[] = { "UP", "DOWN", "LEFT", "RIGHT" };
 
 // =================================================================
-// 3. INTERRUPÇÕES DE HARDWARE (ISRs) COM DEBOUNCE
+// 3. INTERRUPÇÕES DE HARDWARE (ISRs) COM FILTRAGEM ANTI-RUÍDO
 // =================================================================
-void IRAM_ATTR isrGenerica(DirecaoSeta dir) {
+void IRAM_ATTR isrGenerica(DirecaoSeta dir, uint8_t pino) {
   uint32_t agora = xTaskGetTickCountFromISR() * portTICK_PERIOD_MS;
-  if (agora - ultimoClique[dir] > 120) {
-    ultimoClique[dir] = agora;
-    EventoPasso_t ev = { dir, agora };
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(filaPassos, &ev, &xHigherPriorityTaskWoken);
-    if (xHigherPriorityTaskWoken) {
-      portYIELD_FROM_ISR();
+  if (agora - ultimoClique[dir] > 140) {
+    // FILTRAGEM DE RUÍDO / CROSSTALK:
+    // O ruído capacitivo do fio vizinho no cabo dura microssegundos.
+    // Uma pisada humana real mantém o pino em LOW (GND) por mais de 50ms.
+    // Confirmamos se o pino está REALMENTE em nível LOW antes de registrar o passo:
+    if (digitalRead(pino) == LOW) {
+      ultimoClique[dir] = agora;
+      EventoPasso_t ev = { dir, agora };
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+      xQueueSendFromISR(filaPassos, &ev, &xHigherPriorityTaskWoken);
+      if (xHigherPriorityTaskWoken) {
+        portYIELD_FROM_ISR();
+      }
     }
   }
 }
 
-void IRAM_ATTR isrUp()    { isrGenerica(SETA_UP); }
-void IRAM_ATTR isrDown()  { isrGenerica(SETA_DOWN); }
-void IRAM_ATTR isrLeft()  { isrGenerica(SETA_LEFT); }
-void IRAM_ATTR isrRight() { isrGenerica(SETA_RIGHT); }
+void IRAM_ATTR isrUp()    { isrGenerica(SETA_UP, PIN_UP); }
+void IRAM_ATTR isrDown()  { isrGenerica(SETA_DOWN, PIN_DOWN); }
+void IRAM_ATTR isrLeft()  { isrGenerica(SETA_LEFT, PIN_LEFT); }
+void IRAM_ATTR isrRight() { isrGenerica(SETA_RIGHT, PIN_RIGHT); }
 
 // =================================================================
 // 4. CLIENTE MQTT E TAREFAS FREERTOS
