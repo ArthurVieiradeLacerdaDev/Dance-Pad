@@ -5,8 +5,9 @@ import { buildConnect, buildPublish } from '../src/input/mqtt-packets.js';
 const direction = (process.argv[2] || 'UP').toUpperCase();
 const count = Number(process.argv[3]) || 1;
 const intervalMs = Number(process.argv[4]) || 500;
+const topic = process.argv[5] || 'str/ddr/artur/passos';
 
-console.log(`📡 Conectando ao HiveMQ para publicar ${count}x "${direction}" no tópico "str/ddr/passos"...`);
+console.log(`📡 Conectando ao HiveMQ para publicar ${count}x "${direction}" no tópico "${topic}"...`);
 
 const socket = net.createConnection(1883, 'broker.hivemq.com', () => {
   socket.write(buildConnect({ clientId: `evil-dance-cli-${Date.now()}` }));
@@ -14,7 +15,9 @@ const socket = net.createConnection(1883, 'broker.hivemq.com', () => {
   let sent = 0;
   const timer = setInterval(() => {
     const payload = JSON.stringify({ seta: direction });
-    socket.write(buildPublish('str/ddr/passos', payload));
+    socket.write(buildPublish(topic, payload));
+    // Publica também no genérico para garantir
+    if (topic !== 'str/ddr/passos') socket.write(buildPublish('str/ddr/passos', payload));
     sent++;
     console.log(`[${sent}/${count}] 📤 Publicado: ${payload}`);
     if (sent >= count) {
