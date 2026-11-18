@@ -70,10 +70,14 @@ PubSubClient mqttClient(espClient);
 void reconectarMQTT() {
   while (!mqttClient.connected()) {
     String clientId = "ESP32-DancePad-" + String(random(0xffff), HEX);
+    Serial.print("Conectando ao Mosquitto...");
     if (mqttClient.connect(clientId.c_str())) {
-      // Conectado com sucesso
+      Serial.println(" CONECTADO COM SUCESSO!");
     } else {
-      vTaskDelay(pdMS_TO_TICKS(1500));
+      Serial.print(" Falhou, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(". Tentando em 1s...");
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 }
@@ -83,18 +87,21 @@ void TaskMQTT(void* pvParameters) {
   char payload[64];
 
   for (;;) {
-    // Fuga de polling: Fica bloqueada aqui até chegar uma pisada da ISR (0% CPU)
-    if (xQueueReceive(filaPassos, &evento, portMAX_DELAY) == pdTRUE) {
-      if (!mqttClient.connected()) {
-        reconectarMQTT();
-      }
-      mqttClient.loop();
+    // Mantém a conexão sempre ativa (ping vivo no broker)
+    if (!mqttClient.connected()) {
+      reconectarMQTT();
+    }
+    mqttClient.loop();
 
-      // Monta o JSON oficial aceito pelo jogo Web
+    // Processa a fila de passos: se pisar, envia na mesma hora (latência 0ms)
+    // Se ninguém pisar, acorda a cada 30ms para manter o ping do MQTT ativo
+    if (xQueueReceive(filaPassos, &evento, pdMS_TO_TICKS(30)) == pdTRUE) {
       snprintf(payload, sizeof(payload), "{\"seta\":\"%s\",\"ts\":%lu}",
                NOMES_SETAS[evento.direcao], evento.timestamp);
 
-      // Publica nos dois tópicos para garantir
+      Serial.print("👟 Pisada no pino! Enviando MQTT: ");
+      Serial.println(payload);
+
       mqttClient.publish(TOPIC_PASSOS, payload);
       mqttClient.publish(TOPIC_LEGACY, payload);
     }
@@ -131,6 +138,7 @@ void setup() {
 
   // 5. Configura Broker MQTT
   mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  reconectarMQTT();
 
   // 6. Cria a Tarefa FreeRTOS no Core 1
   xTaskCreatePinnedToCore(
@@ -142,6 +150,8 @@ void setup() {
     NULL,
     1  // Core 1 do ESP32
   );
+  
+  Serial.println(">>> Sistema FreeRTOS pronto! Pise nas setas... <<<");
 }
 
 void loop() {
